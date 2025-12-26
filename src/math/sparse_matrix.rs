@@ -13,21 +13,21 @@ pub struct SparseMatrix {
 }
 
 impl SparseMatrix {
-    pub fn try_new(n_rows: usize, n_cols: usize, row_adj: Vec<Vec<usize>>, col_adj: Vec<Vec<usize>>) -> Result<Self, String> {
+    pub fn new(n_rows: usize, n_cols: usize, row_adj: Vec<Vec<usize>>, col_adj: Vec<Vec<usize>>) -> Self {
+        assert_eq!(n_rows, row_adj.len(), "n_rows({})とrow_adjの長さ({})が一致しません", n_rows, row_adj.len());
+        assert_eq!(n_cols, col_adj.len(), "n_cols({})とcol_adjの長さ({})が一致しません", n_cols, col_adj.len());
+
         for (row_idx, neighbor) in row_adj.iter().enumerate() {
             for &col_idx in neighbor {
                 if !col_adj[col_idx].contains(&row_idx) {
-                    return Err("row_adjとcol_adjが整合していません".to_string());
+                   panic!("row_adjとcol_adjが整合していません");
                 } else {
                     continue;
                 }
             };
         };
 
-        assert_eq!(n_rows, row_adj.len(), "n_rows({})とrow_adjの長さ({})が一致しません", n_rows, row_adj.len());
-        assert_eq!(n_cols, col_adj.len(), "n_cols({})とcol_adjの長さ({})が一致しません", n_cols, col_adj.len());
-
-        Ok(Self { n_rows, n_cols, row_adj, col_adj })
+        Self { n_rows, n_cols, row_adj, col_adj }
     }
 
     pub fn from_row_adj(n_rows: usize, n_cols: usize, row_adj: Vec<Vec<usize>>) -> Self {
@@ -38,12 +38,7 @@ impl SparseMatrix {
                 col_adj[col_idx].push(row_idx);
             }
         }
-        Self {
-            n_rows,
-            n_cols,
-            row_adj,
-            col_adj,
-        }
+        Self::new(n_rows, n_cols, row_adj, col_adj)
     }
 
     /// 疎行列とバイナリベクトルの積を計算する
@@ -73,7 +68,6 @@ impl SparseMatrix {
 
 #[cfg(test)]
 mod tests {
-    use std::cmp::max_by_key;
     use super::*;
 
     #[test]
@@ -93,7 +87,7 @@ mod tests {
             vec![1, 2],
             vec![2]
         ];
-        let matrix = SparseMatrix::try_new(3, 4, row_adj, col_adj).unwrap();
+        let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
 
         // エラーベクトル e = [1, 0, 1, 0]
         let mut error: BitVec<u64, Lsb0> = bitvec![u64, Lsb0; 0; 4];
@@ -110,7 +104,8 @@ mod tests {
     }
 
     #[test]
-    fn test_try_new() {
+    #[should_panic(expected = "row_adjとcol_adjが整合していません")]
+    fn test_new_panic() {
         let n_rows = 3;
         let n_cols = 4;
         let row_adj = vec![
@@ -124,8 +119,13 @@ mod tests {
             vec![1, 2],
             vec![3],
         ];
-        assert!(SparseMatrix::try_new(n_rows, n_cols, row_adj, col_adj).is_err());
+        SparseMatrix::new(n_rows, n_cols, row_adj, col_adj);
+    }
 
+    #[test]
+    fn test_new() {
+        let n_rows = 3;
+        let n_cols = 4;
         let row_adj = vec![
             vec![0, 1],
             vec![1, 2],
@@ -135,9 +135,9 @@ mod tests {
             vec![0],
             vec![0, 1],
             vec![1, 2],
-            vec![2]
+            vec![2],
         ];
-        assert!(SparseMatrix::try_new(3, 4, row_adj, col_adj).is_ok());
+        let _matrix = SparseMatrix::new(n_rows, n_cols, row_adj, col_adj);
     }
 
     #[test]
@@ -153,7 +153,7 @@ mod tests {
             vec![1, 2],
             vec![2]
         ];
-        let matrix = SparseMatrix::try_new(3, 4, row_adj, col_adj).unwrap();
+        let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
         let row_adj = vec![
             vec![0, 1],
             vec![1, 2],
