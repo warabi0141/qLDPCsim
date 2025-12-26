@@ -1,213 +1,180 @@
+use crate::code::pauri_string::PauliString;
+use crate::math::bit_linear_algebra::is_linearly_independent;
+
 use bitvec::prelude::*;
-use std::ops::Mul;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Phase {
-    One,
-    I,
-    MinusOne,
-    MinusI,
-}
-
-impl Mul for Phase {
-    type Output = Self;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        match (self, rhs) {
-            (Phase::One, p) | (p, Phase::One) => p,
-            (Phase::I, Phase::I) => Phase::MinusOne,
-            (Phase::I, Phase::MinusI) => Phase::One,
-            (Phase::MinusI, Phase::I) => Phase::One,
-            (Phase::MinusI, Phase::MinusI) => Phase::MinusOne,
-            (Phase::I, Phase::MinusOne) => Phase::MinusI,
-            (Phase::MinusOne, Phase::I) => Phase::MinusI,
-            (Phase::MinusI, Phase::MinusOne) => Phase::I,
-            (Phase::MinusOne, Phase::MinusI) => Phase::I,
-            (Phase::MinusOne, Phase::MinusOne) => Phase::One,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct PauliString {
+#[derive(Debug, Clone)]
+pub struct StabilizerGroup {
     num_qubits: usize,
-    phase: Phase,
-    z_part: BitVec<u64, Lsb0>,
-    x_part: BitVec<u64, Lsb0>,
+    generators: Vec<PauliString>,
 }
 
-impl PauliString {
-    pub fn new(num_qubits: usize, phase: Phase, z_part: BitVec<u64, Lsb0>, x_part: BitVec<u64, Lsb0>) -> Self {
-        assert_eq!(num_qubits, z_part.len(), "num_qubits({})とz_partの長さ({})が一致しません", num_qubits, z_part.len());
-        assert_eq!(num_qubits, x_part.len(), "num_qubits({})とx_partの長さ({})が一致しません", num_qubits, x_part.len());
+impl StabilizerGroup {
+    pub fn new(num_qubits: usize, generators: Vec<PauliString>) -> Self {
+        for generator in &generators {
+            assert_eq!(num_qubits, generator.get_num_qubits(), "num_qubits({})と生成子の量子ビット数({})が一致しません", num_qubits, generator.get_num_qubits());
+        }
 
-        Self { num_qubits, phase, z_part, x_part }
-    }
+        let mut z_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
+        let mut x_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
+        for generator in &generators {
+            z_part_vecs.push(generator.get_z_part().clone());
+            x_part_vecs.push(generator.get_x_part().clone());
+        }
+        assert!(is_linearly_independent(&z_part_vecs) && is_linearly_independent(&x_part_vecs), "演算子が独立ではありません");
 
-    pub fn from_stirng(s: &str) -> Self {
-
-        fn parse_phase(s: &str) -> Phase {
-            match s.chars().next() {
-                Some(first_char) => {
-                    match first_char {
-                        '+' => { match s.chars().nth(1) {
-                            Some(second_char) => {
-                                match second_char {
-                                    'I' | 'X' | 'Y' | 'Z' => { Phase::One }
-                                    'i' => { Phase::I }
-                                    _ => panic!("不正な文字が含まれています: {}", second_char),
-                                }
-                            }
-                            None => panic!("演算子の情報がありません"),
-                        } }
-                        '-' => { match s.chars().nth(1) {
-                            Some(second_char) => {
-                                match second_char {
-                                    'I' | 'X' | 'Y' | 'Z' => { Phase::MinusOne }
-                                    'i' => { Phase::MinusI }
-                                    _ => panic!("不正な文字が含まれています: {}", second_char),
-                                }
-                            }
-                            None => panic!("演算子の情報がありません"),
-                        } }
-                        'i' => { Phase::I }
-                        'I' | 'X' | 'Y' | 'Z' => { Phase::One }
-                        _ => panic!("不正な文字が含まれています: {}", first_char),
-                    }
-                }
-                None => panic!("空の文字列です"),
+        for i in 0..generators.len() {
+            for j in (i + 1)..generators.len() {
+                assert!(generators[i].commutes(&generators[j]), "生成子が互いに可換ではありません");
             }
         }
 
-        fn parse_pauli_string(s: &str) -> (BitVec<u64, Lsb0>, BitVec<u64, Lsb0>) {
-            let mut z_part = BitVec::<u64, Lsb0>::new();
-            let mut x_part = BitVec::<u64, Lsb0>::new();
+        Self { num_qubits, generators }
+    }
 
-            for c in s.chars() {
-                match c {
-                    '+' | '-' | 'i' => continue,
-                    'I' => {
-                        z_part.push(false);
-                        x_part.push(false);
-                    }
-                    'X' => {
-                        z_part.push(false);
-                        x_part.push(true);
-                    }
-                    'Y' => {
-                        z_part.push(true);
-                        x_part.push(true);
-                    }
-                    'Z' => {
-                        z_part.push(true);
-                        x_part.push(false);
-                    }
-                    _ => panic!("不正な文字が含まれています: {}", c),
-                }
-            }
+    pub fn get_num_qubits(&self) -> usize {
+        self.num_qubits
+    }
 
-            (z_part, x_part)
+    pub fn get_generators(&self) -> &Vec<PauliString> {
+        &self.generators
+    }
+
+    pub fn get_num_generators(&self) -> usize {
+        self.generators.len()
+    }
+
+    pub fn size(&self) -> usize {
+        1 << self.generators.len()
+    }
+
+    pub fn iter(&self) -> StabilizerGroupIterator {
+        StabilizerGroupIterator {
+            stabilizer_group: self.clone(),
+            index: 0,
+            total: self.size(),
+        }
+    }
+
+    pub fn include(&self, pauli_string: &PauliString) -> bool {
+        let mut z_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
+        z_part_vecs.push(pauli_string.get_z_part().clone());
+        let mut x_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
+        x_part_vecs.push(pauli_string.get_x_part().clone());
+        for generator in &self.generators {
+            z_part_vecs.push(generator.get_z_part().clone());
+            x_part_vecs.push(generator.get_x_part().clone());
+        }
+        !is_linearly_independent(&z_part_vecs) && !is_linearly_independent(&x_part_vecs)
+    }
+}
+
+pub struct StabilizerGroupIterator {
+    stabilizer_group: StabilizerGroup,
+    index: usize,
+    total: usize,
+}
+
+impl Iterator for StabilizerGroupIterator {
+    type Item = PauliString;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.total {
+            return None;
         }
 
-        let phase = parse_phase(s);
-        let (z_part, x_part) = parse_pauli_string(s);
-        let num_qubits = z_part.len();
-
-        Self::new(num_qubits, phase, z_part, x_part)
-    }
-}
-
-impl Mul<&PauliString> for &PauliString {
-    type Output = PauliString;
-
-    fn mul(self, rhs: &PauliString) -> Self::Output {
-        assert_eq!(self.num_qubits, rhs.num_qubits, "乗算するPauli文字列の量子ビット数が一致しません");
-        let mut phase = self.phase * rhs.phase;
-        let mut z_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
-        let mut x_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
-
-        for i in 0..self.num_qubits {
-            let a_z = self.z_part[i];
-            let a_x = self.x_part[i];
-            let b_z = rhs.z_part[i];
-            let b_x = rhs.x_part[i];
-
-            match (a_z, a_x, b_z, b_x) {
-                (false, false, _, _) | (_, _, false, false) => {}
-                (true, false, true, false) | (false, true, false, true) | (true, true, true, true) => {}
-                (false, true, true, true) | (true, true, true, false) | (true, false, false, true) => { phase = phase * Phase::I; }
-                (false, true, true, false) | (true, true, false, true) | (true, false, true, true) => { phase = phase * Phase::MinusI; }
+        let mut result = PauliString::identity(self.stabilizer_group.get_num_qubits());
+        
+        for (gen_idx, generator) in self.stabilizer_group.get_generators().iter().enumerate() {
+            if (self.index >> gen_idx) & 1 == 1 {
+                result = &result * generator;
             }
-
-            z_part.push(a_z ^ b_z);
-            x_part.push(a_x ^ b_x);
         }
 
-        PauliString::new(self.num_qubits, phase, z_part, x_part)
+        self.index += 1;
+        Some(result)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.total - self.index, Some(self.total - self.index))
     }
 }
 
-impl Mul<PauliString> for PauliString {
-    type Output = PauliString;
-
-    fn mul(self, rhs: PauliString) -> Self::Output {
-        &self * &rhs
+impl ExactSizeIterator for StabilizerGroupIterator {
+    fn len(&self) -> usize {
+        self.total - self.index
     }
 }
-
-impl Mul<&PauliString> for PauliString {
-    type Output = PauliString;
-
-    fn mul(self, rhs: &PauliString) -> Self::Output {
-        &self * rhs
-    }
-}
-
-impl Mul<PauliString> for &PauliString {
-    type Output = PauliString;
-
-    fn mul(self, rhs: PauliString) -> Self::Output {
-        self * &rhs
-    }
-}
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_pauli_string_from_string() {
-        let pauli_str = PauliString::from_stirng("+XZIY");
-        assert_eq!(pauli_str.num_qubits, 4);
-        assert_eq!(pauli_str.phase, Phase::One);
-        assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 0, 1, 0, 1));
-        assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 1, 0, 0, 1));
-
-        let pauli_str = PauliString::from_stirng("-iYZXI");
-        assert_eq!(pauli_str.num_qubits, 4);
-        assert_eq!(pauli_str.phase, Phase::MinusI);
-        assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 1, 1, 0, 0));
-        assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 1, 0, 1, 0));
-
-        let pauli_str = PauliString::from_stirng("IIXI");
-        assert_eq!(pauli_str.num_qubits, 4);
-        assert_eq!(pauli_str.phase, Phase::One);
-        assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 0, 0, 0, 0));
-        assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 0, 0, 1, 0));
+    fn test_stabilizer_new() {
+        let s1 = PauliString::from_stirng("XZZXI");
+        let s2 = PauliString::from_stirng("IXZZX");
+        let s3 = PauliString::from_stirng("XIXZZ");
+        let s4 = PauliString::from_stirng("ZXIXZ");
+        let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
+        assert_eq!(stabilizer_group.get_num_qubits(), 5);
+        assert_eq!(stabilizer_group.get_num_generators(), 4);
     }
 
     #[test]
-    fn test_pauli_string_multiplication() {
-        let pauli_str1 = PauliString::from_stirng("+XZIY");
-        let pauli_str2 = PauliString::from_stirng("-iYZXI");
-        let result = &pauli_str1 * &pauli_str2;
-        let answer = PauliString::from_stirng("+ZIXY");
-        assert_eq!(result, answer);
+    #[should_panic(expected = "演算子が独立ではありません")]
+    fn test_stabilizer_new_dependent() {
+        let s1 = PauliString::from_stirng("XZZXI");
+        let s2 = PauliString::from_stirng("IXZZX");
+        let s3 = PauliString::from_stirng("XIXZZ");
+        let s4 = PauliString::from_stirng("XIXZZ"); // 重複
+        let _stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
+    }
 
-        let pauli_str3 = PauliString::from_stirng("IIXI");
-        let result2 = pauli_str1 * pauli_str3;
-        let answer2 = PauliString::from_stirng("+XZXY");
-        assert_eq!(result2, answer2);
+    #[test]
+    #[should_panic(expected = "生成子が互いに可換ではありません")]
+    fn test_stabilizer_new_non_commuting() {
+        let s1 = PauliString::from_stirng("XZZXI");
+        let s3 = PauliString::from_stirng("XIXZZ");
+        let s4 = PauliString::from_stirng("XXXZX"); // 非可換
+        let _stabilizer_group = StabilizerGroup::new(5, vec![s1, s3, s4]);
+    }
+
+    #[test]
+    fn test_stabilizer_size() {
+        let s1 = PauliString::from_stirng("XZZXI");
+        let s2 = PauliString::from_stirng("IXZZX");
+        let s3 = PauliString::from_stirng("XIXZZ");
+        let s4 = PauliString::from_stirng("ZXIXZ");
+        let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
+        assert_eq!(stabilizer_group.size(), 16);
+    }
+
+    #[test]
+    fn test_stabilizer_iterator() {
+        let s1 = PauliString::from_stirng("XZZXI");
+        let s2 = PauliString::from_stirng("IXZZX");
+        let s3 = PauliString::from_stirng("XIXZZ");
+        let s4 = PauliString::from_stirng("ZXIXZ");
+        let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
+        let mut iter = stabilizer_group.iter();
+        let mut count = 0;
+        while let Some(_pauli_string) = iter.next() {
+            count += 1;
+        }
+        assert_eq!(count, 16);
+    }
+
+    #[test]
+    fn test_stabilizer_include() {
+        let s1 = PauliString::from_stirng("XZZXI");
+        let s2 = PauliString::from_stirng("IXZZX");
+        let s3 = PauliString::from_stirng("XIXZZ");
+        let s4 = PauliString::from_stirng("ZXIXZ");
+        let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
+        let included_pauli = PauliString::from_stirng("YXXYI");
+        let not_included_pauli = PauliString::from_stirng("XXXXX");
+        assert!(stabilizer_group.include(&included_pauli));
+        assert!(!stabilizer_group.include(&not_included_pauli));
     }
 }
