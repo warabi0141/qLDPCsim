@@ -34,6 +34,25 @@ impl BinarySymplecticVector {
         &self.x_part
     }
 
+    pub fn get_num_qubits(&self) -> usize {
+        self.z_part.len()
+    }
+
+     /// このベクトルと他のベクトルのシンプレクティック積を計算する
+     /// 
+     /// # Examples
+     /// ```rust
+     /// let v1 = BinarySymplecticVector::new(
+     ///     bitvec![u64, Lsb0; 1, 0, 1],
+     ///     bitvec![u64, Lsb0; 0, 1, 1],
+     /// );
+     /// let v2 = BinarySymplecticVector::new(
+     ///     bitvec![u64, Lsb0; 0, 1, 1],
+     ///     bitvec![u64, Lsb0; 1, 0, 1],
+     /// );
+     /// let result = v1.symplectic_product(&v2);
+     /// assert_eq!(result, false);
+     /// ```
     pub fn symplectic_product(&self, other: &BinarySymplecticVector) -> bool {
         assert_eq!(self.z_part.len(), other.z_part.len(), "ベクトルの長さが一致しません");
         let z1 = &self.z_part;
