@@ -1,7 +1,6 @@
 use bitvec::prelude::*;
 
-#[derive(Debug, Clone)]
-#[derive(PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SparseMatrix {
     pub n_rows: usize,
     pub n_cols: usize,
@@ -13,21 +12,43 @@ pub struct SparseMatrix {
 }
 
 impl SparseMatrix {
-    pub fn new(n_rows: usize, n_cols: usize, row_adj: Vec<Vec<usize>>, col_adj: Vec<Vec<usize>>) -> Self {
-        assert_eq!(n_rows, row_adj.len(), "n_rows({})とrow_adjの長さ({})が一致しません", n_rows, row_adj.len());
-        assert_eq!(n_cols, col_adj.len(), "n_cols({})とcol_adjの長さ({})が一致しません", n_cols, col_adj.len());
+    pub fn new(
+        n_rows: usize,
+        n_cols: usize,
+        row_adj: Vec<Vec<usize>>,
+        col_adj: Vec<Vec<usize>>,
+    ) -> Self {
+        assert_eq!(
+            n_rows,
+            row_adj.len(),
+            "n_rows({})とrow_adjの長さ({})が一致しません",
+            n_rows,
+            row_adj.len()
+        );
+        assert_eq!(
+            n_cols,
+            col_adj.len(),
+            "n_cols({})とcol_adjの長さ({})が一致しません",
+            n_cols,
+            col_adj.len()
+        );
 
         for (row_idx, neighbor) in row_adj.iter().enumerate() {
             for &col_idx in neighbor {
                 if !col_adj[col_idx].contains(&row_idx) {
-                   panic!("row_adjとcol_adjが整合していません");
+                    panic!("row_adjとcol_adjが整合していません");
                 } else {
                     continue;
                 }
-            };
-        };
+            }
+        }
 
-        Self { n_rows, n_cols, row_adj, col_adj }
+        Self {
+            n_rows,
+            n_cols,
+            row_adj,
+            col_adj,
+        }
     }
 
     pub fn from_row_adj(n_rows: usize, n_cols: usize, row_adj: Vec<Vec<usize>>) -> Self {
@@ -46,11 +67,17 @@ impl SparseMatrix {
     /// # Arguments
     /// * `rhs` - 右側から掛けるビットベクトル (長さは self.n_cols と一致する必要がある)
     pub fn multiply_with_bitvec(&self, rhs: &BitVec<u64, Lsb0>) -> BitVec<u64, Lsb0> {
-        assert_eq!(self.n_cols, rhs.len(), "行列の列数({})とベクトルの長さ({})が一致していません", self.n_cols, rhs.len());
+        assert_eq!(
+            self.n_cols,
+            rhs.len(),
+            "行列の列数({})とベクトルの長さ({})が一致していません",
+            self.n_cols,
+            rhs.len()
+        );
 
         let mut result = bitvec![u64, Lsb0; 0; self.n_rows];
 
-        for (row_idx, neighbors) in  self.row_adj.iter().enumerate() {
+        for (row_idx, neighbors) in self.row_adj.iter().enumerate() {
             let mut parity = false;
 
             for &col_idx in neighbors {
@@ -76,17 +103,8 @@ mod tests {
         // [1 1 0 0]
         // [0 1 1 0]
         // [0 0 1 1]
-        let row_adj = vec![
-            vec![0, 1],
-            vec![1, 2],
-            vec![2, 3],
-        ];
-        let col_adj = vec![
-            vec![0],
-            vec![0, 1],
-            vec![1, 2],
-            vec![2]
-        ];
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+        let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
         let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
 
         // エラーベクトル e = [1, 0, 1, 0]
@@ -108,17 +126,8 @@ mod tests {
     fn test_new_panic() {
         let n_rows = 3;
         let n_cols = 4;
-        let row_adj = vec![
-            vec![0, 1],
-            vec![1, 2],
-            vec![2, 3],
-        ];
-        let col_adj = vec![
-            vec![0],
-            vec![0, 1],
-            vec![1, 2],
-            vec![3],
-        ];
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+        let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![3]];
         SparseMatrix::new(n_rows, n_cols, row_adj, col_adj);
     }
 
@@ -126,39 +135,17 @@ mod tests {
     fn test_new() {
         let n_rows = 3;
         let n_cols = 4;
-        let row_adj = vec![
-            vec![0, 1],
-            vec![1, 2],
-            vec![2, 3],
-        ];
-        let col_adj = vec![
-            vec![0],
-            vec![0, 1],
-            vec![1, 2],
-            vec![2],
-        ];
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+        let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
         let _matrix = SparseMatrix::new(n_rows, n_cols, row_adj, col_adj);
     }
 
     #[test]
     fn test_from_row_adj() {
-        let row_adj = vec![
-            vec![0, 1],
-            vec![1, 2],
-            vec![2, 3]
-        ];
-        let col_adj = vec![
-            vec![0],
-            vec![0, 1],
-            vec![1, 2],
-            vec![2]
-        ];
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+        let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
         let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
-        let row_adj = vec![
-            vec![0, 1],
-            vec![1, 2],
-            vec![2, 3]
-        ];
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
         let matrix_from_row_adj = SparseMatrix::from_row_adj(3, 4, row_adj);
         assert_eq!(matrix_from_row_adj, matrix);
     }

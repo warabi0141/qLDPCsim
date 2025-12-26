@@ -1,7 +1,7 @@
 mod channel;
-mod math;
 mod code;
 mod decoder;
+mod math;
 mod simulation;
 
 fn main() {

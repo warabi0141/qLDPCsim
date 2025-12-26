@@ -6,7 +6,7 @@ use bitvec::prelude::*;
 /// スタビライザー群を表す構造体
 /// 量子ビット数と生成子のベクトルを持つ
 /// 生成子は互いに可換で独立である必要があり、コンストラクタでチェックする
-/// 
+///
 /// # Examples
 /// ```rust
 /// let s1 = Paulis::from_stirng("XZZXI");
@@ -15,7 +15,7 @@ use bitvec::prelude::*;
 /// let s4 = Paulis::from_stirng("ZXIXZ");
 /// let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
 /// ```
-/// 
+///
 /// # Iteration
 /// ```rust
 /// for stabilizer in stabilizer_group.iter() {
@@ -35,12 +35,21 @@ impl StabilizerGroup {
             z_part_vecs.push(generator.get_z_part().clone());
             x_part_vecs.push(generator.get_x_part().clone());
         }
-        assert!(is_linearly_independent(&z_part_vecs) && is_linearly_independent(&x_part_vecs), "演算子が独立ではありません");
+        assert!(
+            is_linearly_independent(&z_part_vecs) && is_linearly_independent(&x_part_vecs),
+            "演算子が独立ではありません"
+        );
 
         for i in 0..generators.len() {
             for j in (i + 1)..generators.len() {
-                assert!(generators[i].get_num_qubits() == generators[j].get_num_qubits(), "生成子の量子ビット数が一致しません");
-                assert!(generators[i].commutes(&generators[j]), "生成子が互いに可換ではありません");
+                assert!(
+                    generators[i].get_num_qubits() == generators[j].get_num_qubits(),
+                    "生成子の量子ビット数が一致しません"
+                );
+                assert!(
+                    generators[i].commutes(&generators[j]),
+                    "生成子が互いに可換ではありません"
+                );
             }
         }
 
@@ -99,7 +108,7 @@ impl Iterator for StabilizerGroupIterator {
         }
 
         let mut result = Paulis::identity(self.stabilizer_group.get_num_qubits());
-        
+
         for (gen_idx, generator) in self.stabilizer_group.get_generators().iter().enumerate() {
             if (self.index >> gen_idx) & 1 == 1 {
                 result = &result * generator;

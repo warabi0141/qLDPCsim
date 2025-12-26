@@ -1,12 +1,12 @@
-use bitvec::prelude::*;
 use crate::math::bit_linear_algebra::*;
+use bitvec::prelude::*;
 
 /// binary symplectic表現を表す構造体
 /// Z部分とX部分のビットベクトルを持つ
 /// 位相の情報を持っていないのでPaulisよりも弱いが、符号を扱う上では便利
-/// 
+///
 /// TODO: ndarrayやSparseMatrixから生成するメソッドも追加する
-/// 
+///
 /// # Examples
 /// ```rust
 /// let bsv = BinarySymplecticVector::new(
@@ -22,7 +22,13 @@ pub struct BinarySymplecticVector {
 
 impl BinarySymplecticVector {
     pub fn new(z_part: BitVec<u64, Lsb0>, x_part: BitVec<u64, Lsb0>) -> Self {
-        assert_eq!(z_part.len(), x_part.len(), "Z部分とX部分の長さが一致しません: z_part.len() = {}, x_part.len() = {}", z_part.len(), x_part.len());
+        assert_eq!(
+            z_part.len(),
+            x_part.len(),
+            "Z部分とX部分の長さが一致しません: z_part.len() = {}, x_part.len() = {}",
+            z_part.len(),
+            x_part.len()
+        );
         Self { z_part, x_part }
     }
 
@@ -38,23 +44,27 @@ impl BinarySymplecticVector {
         self.z_part.len()
     }
 
-     /// このベクトルと他のベクトルのシンプレクティック積を計算する
-     /// 
-     /// # Examples
-     /// ```rust
-     /// let v1 = BinarySymplecticVector::new(
-     ///     bitvec![u64, Lsb0; 1, 0, 1],
-     ///     bitvec![u64, Lsb0; 0, 1, 1],
-     /// );
-     /// let v2 = BinarySymplecticVector::new(
-     ///     bitvec![u64, Lsb0; 0, 1, 1],
-     ///     bitvec![u64, Lsb0; 1, 0, 1],
-     /// );
-     /// let result = v1.symplectic_product(&v2);
-     /// assert_eq!(result, false);
-     /// ```
+    /// このベクトルと他のベクトルのシンプレクティック積を計算する
+    ///
+    /// # Examples
+    /// ```rust
+    /// let v1 = BinarySymplecticVector::new(
+    ///     bitvec![u64, Lsb0; 1, 0, 1],
+    ///     bitvec![u64, Lsb0; 0, 1, 1],
+    /// );
+    /// let v2 = BinarySymplecticVector::new(
+    ///     bitvec![u64, Lsb0; 0, 1, 1],
+    ///     bitvec![u64, Lsb0; 1, 0, 1],
+    /// );
+    /// let result = v1.symplectic_product(&v2);
+    /// assert_eq!(result, false);
+    /// ```
     pub fn symplectic_product(&self, other: &BinarySymplecticVector) -> bool {
-        assert_eq!(self.z_part.len(), other.z_part.len(), "ベクトルの長さが一致しません");
+        assert_eq!(
+            self.z_part.len(),
+            other.z_part.len(),
+            "ベクトルの長さが一致しません"
+        );
         let z1 = &self.z_part;
         let x1 = &self.x_part;
         let z2 = &other.z_part;
@@ -73,20 +83,14 @@ mod tests {
 
     #[test]
     fn test_symplectic_product() {
-        let v1 = BinarySymplecticVector::new(
-            bitvec![u64, Lsb0; 1, 0, 1],
-            bitvec![u64, Lsb0; 0, 1, 1],
-        );
-        let v2 = BinarySymplecticVector::new(
-            bitvec![u64, Lsb0; 0, 1, 1],
-            bitvec![u64, Lsb0; 1, 0, 1],
-        );
+        let v1 =
+            BinarySymplecticVector::new(bitvec![u64, Lsb0; 1, 0, 1], bitvec![u64, Lsb0; 0, 1, 1]);
+        let v2 =
+            BinarySymplecticVector::new(bitvec![u64, Lsb0; 0, 1, 1], bitvec![u64, Lsb0; 1, 0, 1]);
         assert_eq!(v1.symplectic_product(&v2), false);
 
-        let v3 = BinarySymplecticVector::new(
-            bitvec![u64, Lsb0; 0, 1, 1],
-            bitvec![u64, Lsb0; 1, 1, 0],
-        );
+        let v3 =
+            BinarySymplecticVector::new(bitvec![u64, Lsb0; 0, 1, 1], bitvec![u64, Lsb0; 1, 1, 0]);
         assert_eq!(v1.symplectic_product(&v3), true);
     }
 }

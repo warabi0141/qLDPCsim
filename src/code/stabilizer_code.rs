@@ -7,9 +7,7 @@ struct StabilizerCode {
 
 impl StabilizerCode {
     pub fn new(stabilizer_group: StabilizerGroup) -> Self {
-        Self {
-            stabilizer_group
-        }
+        Self { stabilizer_group }
     }
 
     pub fn from_generators(generators: Vec<Paulis>) -> Self {

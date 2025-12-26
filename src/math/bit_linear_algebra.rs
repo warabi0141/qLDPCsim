@@ -1,7 +1,7 @@
 use bitvec::prelude::*;
 
 /// ビットベクトル同士の内積を計算する
-/// 
+///
 /// # Examples
 /// ```rust
 /// let a = bitvec![u64, Lsb0; 1, 0, 1, 1];
@@ -10,7 +10,13 @@ use bitvec::prelude::*;
 /// assert_eq!(result, false);
 /// ```
 pub fn inner_product(a: &BitVec<u64, Lsb0>, b: &BitVec<u64, Lsb0>) -> bool {
-    assert_eq!(a.len(), b.len(), "ベクトルの長さが一致しません: a.len() = {}, b.len() = {}", a.len(), b.len());
+    assert_eq!(
+        a.len(),
+        b.len(),
+        "ベクトルの長さが一致しません: a.len() = {}, b.len() = {}",
+        a.len(),
+        b.len()
+    );
 
     let mut parity = false;
 
@@ -25,7 +31,7 @@ pub fn inner_product(a: &BitVec<u64, Lsb0>, b: &BitVec<u64, Lsb0>) -> bool {
 
 /// ビット行列のランクを計算する
 /// ビット行列は、`Vec<BitVec>`で表され、各`BitVec`が行を表す
-/// 
+///
 /// # Examples
 /// ```rust
 /// let vectors = vec![
@@ -65,7 +71,7 @@ pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
             for row in 0..n {
                 if row != rank && mat[row][col] {
                     let rank_vec = mat[rank].clone();
-                    mat[row] ^=  rank_vec;
+                    mat[row] ^= rank_vec;
                 }
             }
 
@@ -77,7 +83,7 @@ pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
 }
 
 /// ビットベクトルの集合が線形独立かどうかを判定する
-/// 
+///
 /// # Examples
 /// ```rust
 /// let vectors = vec![

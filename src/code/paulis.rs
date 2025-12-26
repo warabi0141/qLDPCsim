@@ -1,11 +1,11 @@
+use crate::code::binary_symplectic::BinarySymplecticVector;
 use bitvec::prelude::*;
 use std::ops::Mul;
-use crate::code::binary_symplectic::BinarySymplecticVector;
 
 /// Pauli演算子の位相を表す列挙型
 /// +1, +i, -1, -i の4つの値を持つ
 /// Phase同士の乗算も実装している
-/// 
+///
 /// # Examples
 /// ```rust
 /// let phase1 = Phase::I;
@@ -42,7 +42,7 @@ impl Mul for Phase {
 /// Pauli演算子(Paulis)を表す構造体
 /// 量子ビット数、位相、Z部分とX部分のビットベクトルを持つ
 /// 位相の情報も持っているという点でBinarySymplecticVectorよりも強力
-/// 
+///
 /// # Examples
 /// ```rust
 /// let pauli = Paulis::from_stirng("+XZYI");
@@ -57,44 +57,58 @@ pub struct Paulis {
 }
 
 impl Paulis {
-    pub fn new(num_qubits: usize, phase: Phase, z_part: BitVec<u64, Lsb0>, x_part: BitVec<u64, Lsb0>) -> Self {
-        assert_eq!(num_qubits, z_part.len(), "num_qubits({})とz_partの長さ({})が一致しません", num_qubits, z_part.len());
-        assert_eq!(num_qubits, x_part.len(), "num_qubits({})とx_partの長さ({})が一致しません", num_qubits, x_part.len());
+    pub fn new(
+        num_qubits: usize,
+        phase: Phase,
+        z_part: BitVec<u64, Lsb0>,
+        x_part: BitVec<u64, Lsb0>,
+    ) -> Self {
+        assert_eq!(
+            num_qubits,
+            z_part.len(),
+            "num_qubits({})とz_partの長さ({})が一致しません",
+            num_qubits,
+            z_part.len()
+        );
+        assert_eq!(
+            num_qubits,
+            x_part.len(),
+            "num_qubits({})とx_partの長さ({})が一致しません",
+            num_qubits,
+            x_part.len()
+        );
 
-        Self { num_qubits, phase, binary_symplectic_vector: BinarySymplecticVector::new(z_part, x_part) }
+        Self {
+            num_qubits,
+            phase,
+            binary_symplectic_vector: BinarySymplecticVector::new(z_part, x_part),
+        }
     }
 
     pub fn from_stirng(s: &str) -> Self {
-
         fn parse_phase(s: &str) -> Phase {
             match s.chars().next() {
-                Some(first_char) => {
-                    match first_char {
-                        '+' => { match s.chars().nth(1) {
-                            Some(second_char) => {
-                                match second_char {
-                                    'I' | 'X' | 'Y' | 'Z' => { Phase::One }
-                                    'i' => { Phase::I }
-                                    _ => panic!("不正な文字が含まれています: {}", second_char),
-                                }
-                            }
-                            None => panic!("演算子の情報がありません"),
-                        } }
-                        '-' => { match s.chars().nth(1) {
-                            Some(second_char) => {
-                                match second_char {
-                                    'I' | 'X' | 'Y' | 'Z' => { Phase::MinusOne }
-                                    'i' => { Phase::MinusI }
-                                    _ => panic!("不正な文字が含まれています: {}", second_char),
-                                }
-                            }
-                            None => panic!("演算子の情報がありません"),
-                        } }
-                        'i' => { Phase::I }
-                        'I' | 'X' | 'Y' | 'Z' => { Phase::One }
-                        _ => panic!("不正な文字が含まれています: {}", first_char),
-                    }
-                }
+                Some(first_char) => match first_char {
+                    '+' => match s.chars().nth(1) {
+                        Some(second_char) => match second_char {
+                            'I' | 'X' | 'Y' | 'Z' => Phase::One,
+                            'i' => Phase::I,
+                            _ => panic!("不正な文字が含まれています: {}", second_char),
+                        },
+                        None => panic!("演算子の情報がありません"),
+                    },
+                    '-' => match s.chars().nth(1) {
+                        Some(second_char) => match second_char {
+                            'I' | 'X' | 'Y' | 'Z' => Phase::MinusOne,
+                            'i' => Phase::MinusI,
+                            _ => panic!("不正な文字が含まれています: {}", second_char),
+                        },
+                        None => panic!("演算子の情報がありません"),
+                    },
+                    'i' => Phase::I,
+                    'I' | 'X' | 'Y' | 'Z' => Phase::One,
+                    _ => panic!("不正な文字が含まれています: {}", first_char),
+                },
                 None => panic!("空の文字列です"),
             }
         }
@@ -164,8 +178,13 @@ impl Paulis {
     }
 
     pub fn commutes(&self, other: &Paulis) -> bool {
-        assert_eq!(self.num_qubits, other.num_qubits, "比較するPauli文字列の量子ビット数が一致しません");
-        !self.binary_symplectic_vector.symplectic_product(&other.binary_symplectic_vector)
+        assert_eq!(
+            self.num_qubits, other.num_qubits,
+            "比較するPauli文字列の量子ビット数が一致しません"
+        );
+        !self
+            .binary_symplectic_vector
+            .symplectic_product(&other.binary_symplectic_vector)
     }
 }
 
@@ -173,7 +192,10 @@ impl Mul<&Paulis> for &Paulis {
     type Output = Paulis;
 
     fn mul(self, rhs: &Paulis) -> Self::Output {
-        assert_eq!(self.num_qubits, rhs.num_qubits, "乗算するPauli文字列の量子ビット数が一致しません");
+        assert_eq!(
+            self.num_qubits, rhs.num_qubits,
+            "乗算するPauli文字列の量子ビット数が一致しません"
+        );
         let mut phase = self.phase * rhs.phase;
         let mut z_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
         let mut x_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
@@ -186,9 +208,19 @@ impl Mul<&Paulis> for &Paulis {
 
             match (a_z, a_x, b_z, b_x) {
                 (false, false, _, _) | (_, _, false, false) => {}
-                (true, false, true, false) | (false, true, false, true) | (true, true, true, true) => {}
-                (false, true, true, true) | (true, true, true, false) | (true, false, false, true) => { phase = phase * Phase::I; }
-                (false, true, true, false) | (true, true, false, true) | (true, false, true, true) => { phase = phase * Phase::MinusI; }
+                (true, false, true, false)
+                | (false, true, false, true)
+                | (true, true, true, true) => {}
+                (false, true, true, true)
+                | (true, true, true, false)
+                | (true, false, false, true) => {
+                    phase = phase * Phase::I;
+                }
+                (false, true, true, false)
+                | (true, true, false, true)
+                | (true, false, true, true) => {
+                    phase = phase * Phase::MinusI;
+                }
             }
 
             z_part.push(a_z ^ b_z);
@@ -223,7 +255,6 @@ impl Mul<Paulis> for &Paulis {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,20 +264,38 @@ mod tests {
         let pauli_str = Paulis::from_stirng("+XZIY");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
-        assert_eq!(pauli_str.binary_symplectic_vector.get_z_part().clone(), bitvec!(u64, Lsb0; 0, 1, 0, 1));
-        assert_eq!(pauli_str.binary_symplectic_vector.get_x_part().clone(), bitvec!(u64, Lsb0; 1, 0, 0, 1));
+        assert_eq!(
+            pauli_str.binary_symplectic_vector.get_z_part().clone(),
+            bitvec!(u64, Lsb0; 0, 1, 0, 1)
+        );
+        assert_eq!(
+            pauli_str.binary_symplectic_vector.get_x_part().clone(),
+            bitvec!(u64, Lsb0; 1, 0, 0, 1)
+        );
 
         let pauli_str = Paulis::from_stirng("-iYZXI");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::MinusI);
-        assert_eq!(pauli_str.binary_symplectic_vector.get_z_part().clone(), bitvec!(u64, Lsb0; 1, 1, 0, 0));
-        assert_eq!(pauli_str.binary_symplectic_vector.get_x_part().clone(), bitvec!(u64, Lsb0; 1, 0, 1, 0));
+        assert_eq!(
+            pauli_str.binary_symplectic_vector.get_z_part().clone(),
+            bitvec!(u64, Lsb0; 1, 1, 0, 0)
+        );
+        assert_eq!(
+            pauli_str.binary_symplectic_vector.get_x_part().clone(),
+            bitvec!(u64, Lsb0; 1, 0, 1, 0)
+        );
 
         let pauli_str = Paulis::from_stirng("IIXI");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
-        assert_eq!(pauli_str.binary_symplectic_vector.get_z_part().clone(), bitvec!(u64, Lsb0; 0, 0, 0, 0));
-        assert_eq!(pauli_str.binary_symplectic_vector.get_x_part().clone(), bitvec!(u64, Lsb0; 0, 0, 1, 0));
+        assert_eq!(
+            pauli_str.binary_symplectic_vector.get_z_part().clone(),
+            bitvec!(u64, Lsb0; 0, 0, 0, 0)
+        );
+        assert_eq!(
+            pauli_str.binary_symplectic_vector.get_x_part().clone(),
+            bitvec!(u64, Lsb0; 0, 0, 1, 0)
+        );
     }
 
     #[test]
