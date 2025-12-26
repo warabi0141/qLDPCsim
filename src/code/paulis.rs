@@ -1,6 +1,17 @@
 use bitvec::prelude::*;
 use std::ops::Mul;
+use crate::code::binary_symplectic::BinarySymplecticVector;
 
+/// Pauli演算子の位相を表す列挙型
+/// +1, +i, -1, -i の4つの値を持つ
+/// Phase同士の乗算も実装している
+/// 
+/// # Examples
+/// ```rust
+/// let phase1 = Phase::I;
+/// let phase2 = Phase::MinusI;
+/// let result = phase1 * phase2; // resultはPhase::MinusOne
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phase {
     One,
@@ -28,20 +39,29 @@ impl Mul for Phase {
     }
 }
 
+/// Pauli演算子(Paulis)を表す構造体
+/// 量子ビット数、位相、Z部分とX部分のビットベクトルを持つ
+/// 位相の情報も持っているという点でBinarySymplecticVectorよりも強力
+/// 
+/// # Examples
+/// ```rust
+/// let pauli = Paulis::from_stirng("+XZYI");
+/// let pauli_minus_i = Paulis::from_stirng("-iXZYI");
+/// let pauli_identity = Paulis::identity(3);
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PauliString {
+pub struct Paulis {
     num_qubits: usize,
     phase: Phase,
-    z_part: BitVec<u64, Lsb0>,
-    x_part: BitVec<u64, Lsb0>,
+    binary_symplectic_vector: BinarySymplecticVector,
 }
 
-impl PauliString {
+impl Paulis {
     pub fn new(num_qubits: usize, phase: Phase, z_part: BitVec<u64, Lsb0>, x_part: BitVec<u64, Lsb0>) -> Self {
         assert_eq!(num_qubits, z_part.len(), "num_qubits({})とz_partの長さ({})が一致しません", num_qubits, z_part.len());
         assert_eq!(num_qubits, x_part.len(), "num_qubits({})とx_partの長さ({})が一致しません", num_qubits, x_part.len());
 
-        Self { num_qubits, phase, z_part, x_part }
+        Self { num_qubits, phase, binary_symplectic_vector: BinarySymplecticVector::new(z_part, x_part) }
     }
 
     pub fn from_stirng(s: &str) -> Self {
@@ -79,7 +99,7 @@ impl PauliString {
             }
         }
 
-        fn parse_pauli_string(s: &str) -> (BitVec<u64, Lsb0>, BitVec<u64, Lsb0>) {
+        fn parse_pauli_s(s: &str) -> (BitVec<u64, Lsb0>, BitVec<u64, Lsb0>) {
             let mut z_part = BitVec::<u64, Lsb0>::new();
             let mut x_part = BitVec::<u64, Lsb0>::new();
 
@@ -110,7 +130,7 @@ impl PauliString {
         }
 
         let phase = parse_phase(s);
-        let (z_part, x_part) = parse_pauli_string(s);
+        let (z_part, x_part) = parse_pauli_s(s);
         let num_qubits = z_part.len();
 
         Self::new(num_qubits, phase, z_part, x_part)
@@ -128,49 +148,33 @@ impl PauliString {
     }
 
     pub fn get_z_part(&self) -> &BitVec<u64, Lsb0> {
-        &self.z_part
+        &self.binary_symplectic_vector.get_z_part()
     }
 
     pub fn get_x_part(&self) -> &BitVec<u64, Lsb0> {
-        &self.x_part
+        &self.binary_symplectic_vector.get_x_part()
     }
 
-    fn symplectic_inner_product(&self, other: &PauliString) -> bool {
+    pub fn commutes(&self, other: &Paulis) -> bool {
         assert_eq!(self.num_qubits, other.num_qubits, "比較するPauli文字列の量子ビット数が一致しません");
-        let mut inner_product = false;
-
-        for i in 0..self.num_qubits {
-            let a_z = self.z_part[i];
-            let a_x = self.x_part[i];
-            let b_z = other.z_part[i];
-            let b_x = other.x_part[i];
-
-            inner_product ^= (a_z & b_x) ^ (a_x & b_z);
-        }
-
-        inner_product
-    }
-
-    pub fn commutes(&self, other: &PauliString) -> bool {
-        assert_eq!(self.num_qubits, other.num_qubits, "比較するPauli文字列の量子ビット数が一致しません");
-        !self.symplectic_inner_product(other)
+        !self.binary_symplectic_vector.symplectic_product(&other.binary_symplectic_vector)
     }
 }
 
-impl Mul<&PauliString> for &PauliString {
-    type Output = PauliString;
+impl Mul<&Paulis> for &Paulis {
+    type Output = Paulis;
 
-    fn mul(self, rhs: &PauliString) -> Self::Output {
+    fn mul(self, rhs: &Paulis) -> Self::Output {
         assert_eq!(self.num_qubits, rhs.num_qubits, "乗算するPauli文字列の量子ビット数が一致しません");
         let mut phase = self.phase * rhs.phase;
         let mut z_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
         let mut x_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
 
         for i in 0..self.num_qubits {
-            let a_z = self.z_part[i];
-            let a_x = self.x_part[i];
-            let b_z = rhs.z_part[i];
-            let b_x = rhs.x_part[i];
+            let a_z = self.binary_symplectic_vector.get_z_part()[i];
+            let a_x = self.binary_symplectic_vector.get_x_part()[i];
+            let b_z = rhs.binary_symplectic_vector.get_z_part()[i];
+            let b_x = rhs.binary_symplectic_vector.get_x_part()[i];
 
             match (a_z, a_x, b_z, b_x) {
                 (false, false, _, _) | (_, _, false, false) => {}
@@ -183,30 +187,30 @@ impl Mul<&PauliString> for &PauliString {
             x_part.push(a_x ^ b_x);
         }
 
-        PauliString::new(self.num_qubits, phase, z_part, x_part)
+        Paulis::new(self.num_qubits, phase, z_part, x_part)
     }
 }
 
-impl Mul<PauliString> for PauliString {
-    type Output = PauliString;
+impl Mul<Paulis> for Paulis {
+    type Output = Paulis;
 
-    fn mul(self, rhs: PauliString) -> Self::Output {
+    fn mul(self, rhs: Paulis) -> Self::Output {
         &self * &rhs
     }
 }
 
-impl Mul<&PauliString> for PauliString {
-    type Output = PauliString;
+impl Mul<&Paulis> for Paulis {
+    type Output = Paulis;
 
-    fn mul(self, rhs: &PauliString) -> Self::Output {
+    fn mul(self, rhs: &Paulis) -> Self::Output {
         &self * rhs
     }
 }
 
-impl Mul<PauliString> for &PauliString {
-    type Output = PauliString;
+impl Mul<Paulis> for &Paulis {
+    type Output = Paulis;
 
-    fn mul(self, rhs: PauliString) -> Self::Output {
+    fn mul(self, rhs: Paulis) -> Self::Output {
         self * &rhs
     }
 }
@@ -217,47 +221,47 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_pauli_string_from_string() {
-        let pauli_str = PauliString::from_stirng("+XZIY");
+    fn test_paulis_from_string() {
+        let pauli_str = Paulis::from_stirng("+XZIY");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
-        assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 0, 1, 0, 1));
-        assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 1, 0, 0, 1));
+        assert_eq!(pauli_str.binary_symplectic_vector.get_z_part().clone(), bitvec!(u64, Lsb0; 0, 1, 0, 1));
+        assert_eq!(pauli_str.binary_symplectic_vector.get_x_part().clone(), bitvec!(u64, Lsb0; 1, 0, 0, 1));
 
-        let pauli_str = PauliString::from_stirng("-iYZXI");
+        let pauli_str = Paulis::from_stirng("-iYZXI");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::MinusI);
-        assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 1, 1, 0, 0));
-        assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 1, 0, 1, 0));
+        assert_eq!(pauli_str.binary_symplectic_vector.get_z_part().clone(), bitvec!(u64, Lsb0; 1, 1, 0, 0));
+        assert_eq!(pauli_str.binary_symplectic_vector.get_x_part().clone(), bitvec!(u64, Lsb0; 1, 0, 1, 0));
 
-        let pauli_str = PauliString::from_stirng("IIXI");
+        let pauli_str = Paulis::from_stirng("IIXI");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
-        assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 0, 0, 0, 0));
-        assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 0, 0, 1, 0));
+        assert_eq!(pauli_str.binary_symplectic_vector.get_z_part().clone(), bitvec!(u64, Lsb0; 0, 0, 0, 0));
+        assert_eq!(pauli_str.binary_symplectic_vector.get_x_part().clone(), bitvec!(u64, Lsb0; 0, 0, 1, 0));
     }
 
     #[test]
-    fn test_pauli_string_multiplication() {
-        let pauli_str1 = PauliString::from_stirng("+XZIY");
-        let pauli_str2 = PauliString::from_stirng("-iYZXI");
+    fn test_pauli_s_multiplication() {
+        let pauli_str1 = Paulis::from_stirng("+XZIY");
+        let pauli_str2 = Paulis::from_stirng("-iYZXI");
         let result = &pauli_str1 * &pauli_str2;
-        let answer = PauliString::from_stirng("+ZIXY");
+        let answer = Paulis::from_stirng("+ZIXY");
         assert_eq!(result, answer);
 
-        let pauli_str3 = PauliString::from_stirng("IIXI");
+        let pauli_str3 = Paulis::from_stirng("IIXI");
         let result2 = pauli_str1 * pauli_str3;
-        let answer2 = PauliString::from_stirng("+XZXY");
+        let answer2 = Paulis::from_stirng("+XZXY");
         assert_eq!(result2, answer2);
     }
 
     #[test]
     fn test_pauli_commutes() {
-        let pauli_str1 = PauliString::from_stirng("+XZIY");
-        let pauli_str2 = PauliString::from_stirng("-iYZXI");
+        let pauli_str1 = Paulis::from_stirng("+XZIY");
+        let pauli_str2 = Paulis::from_stirng("-iYZXI");
         assert!(!pauli_str1.commutes(&pauli_str2));
 
-        let pauli_str3 = PauliString::from_stirng("+IZII");
+        let pauli_str3 = Paulis::from_stirng("+IZII");
         assert!(pauli_str1.commutes(&pauli_str3));
     }
 }

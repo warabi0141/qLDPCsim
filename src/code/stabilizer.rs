@@ -1,4 +1,4 @@
-use crate::code::pauri_string::PauliString;
+use crate::code::paulis::Paulis;
 use crate::math::bit_linear_algebra::is_linearly_independent;
 
 use bitvec::prelude::*;
@@ -6,11 +6,11 @@ use bitvec::prelude::*;
 #[derive(Debug, Clone)]
 pub struct StabilizerGroup {
     num_qubits: usize,
-    generators: Vec<PauliString>,
+    generators: Vec<Paulis>,
 }
 
 impl StabilizerGroup {
-    pub fn new(num_qubits: usize, generators: Vec<PauliString>) -> Self {
+    pub fn new(num_qubits: usize, generators: Vec<Paulis>) -> Self {
         for generator in &generators {
             assert_eq!(num_qubits, generator.get_num_qubits(), "num_qubits({})と生成子の量子ビット数({})が一致しません", num_qubits, generator.get_num_qubits());
         }
@@ -36,7 +36,7 @@ impl StabilizerGroup {
         self.num_qubits
     }
 
-    pub fn get_generators(&self) -> &Vec<PauliString> {
+    pub fn get_generators(&self) -> &Vec<Paulis> {
         &self.generators
     }
 
@@ -56,11 +56,11 @@ impl StabilizerGroup {
         }
     }
 
-    pub fn include(&self, pauli_string: &PauliString) -> bool {
+    pub fn include(&self, paulis: &Paulis) -> bool {
         let mut z_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
-        z_part_vecs.push(pauli_string.get_z_part().clone());
+        z_part_vecs.push(paulis.get_z_part().clone());
         let mut x_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
-        x_part_vecs.push(pauli_string.get_x_part().clone());
+        x_part_vecs.push(paulis.get_x_part().clone());
         for generator in &self.generators {
             z_part_vecs.push(generator.get_z_part().clone());
             x_part_vecs.push(generator.get_x_part().clone());
@@ -76,14 +76,14 @@ pub struct StabilizerGroupIterator {
 }
 
 impl Iterator for StabilizerGroupIterator {
-    type Item = PauliString;
+    type Item = Paulis;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.index >= self.total {
             return None;
         }
 
-        let mut result = PauliString::identity(self.stabilizer_group.get_num_qubits());
+        let mut result = Paulis::identity(self.stabilizer_group.get_num_qubits());
         
         for (gen_idx, generator) in self.stabilizer_group.get_generators().iter().enumerate() {
             if (self.index >> gen_idx) & 1 == 1 {
@@ -112,10 +112,10 @@ mod tests {
 
     #[test]
     fn test_stabilizer_new() {
-        let s1 = PauliString::from_stirng("XZZXI");
-        let s2 = PauliString::from_stirng("IXZZX");
-        let s3 = PauliString::from_stirng("XIXZZ");
-        let s4 = PauliString::from_stirng("ZXIXZ");
+        let s1 = Paulis::from_stirng("XZZXI");
+        let s2 = Paulis::from_stirng("IXZZX");
+        let s3 = Paulis::from_stirng("XIXZZ");
+        let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
         assert_eq!(stabilizer_group.get_num_qubits(), 5);
         assert_eq!(stabilizer_group.get_num_generators(), 4);
@@ -124,38 +124,38 @@ mod tests {
     #[test]
     #[should_panic(expected = "演算子が独立ではありません")]
     fn test_stabilizer_new_dependent() {
-        let s1 = PauliString::from_stirng("XZZXI");
-        let s2 = PauliString::from_stirng("IXZZX");
-        let s3 = PauliString::from_stirng("XIXZZ");
-        let s4 = PauliString::from_stirng("XIXZZ"); // 重複
+        let s1 = Paulis::from_stirng("XZZXI");
+        let s2 = Paulis::from_stirng("IXZZX");
+        let s3 = Paulis::from_stirng("XIXZZ");
+        let s4 = Paulis::from_stirng("XIXZZ"); // 重複
         let _stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
     }
 
     #[test]
     #[should_panic(expected = "生成子が互いに可換ではありません")]
     fn test_stabilizer_new_non_commuting() {
-        let s1 = PauliString::from_stirng("XZZXI");
-        let s3 = PauliString::from_stirng("XIXZZ");
-        let s4 = PauliString::from_stirng("XXXZX"); // 非可換
+        let s1 = Paulis::from_stirng("XZZXI");
+        let s3 = Paulis::from_stirng("XIXZZ");
+        let s4 = Paulis::from_stirng("XXXZX"); // 非可換
         let _stabilizer_group = StabilizerGroup::new(5, vec![s1, s3, s4]);
     }
 
     #[test]
     fn test_stabilizer_size() {
-        let s1 = PauliString::from_stirng("XZZXI");
-        let s2 = PauliString::from_stirng("IXZZX");
-        let s3 = PauliString::from_stirng("XIXZZ");
-        let s4 = PauliString::from_stirng("ZXIXZ");
+        let s1 = Paulis::from_stirng("XZZXI");
+        let s2 = Paulis::from_stirng("IXZZX");
+        let s3 = Paulis::from_stirng("XIXZZ");
+        let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
         assert_eq!(stabilizer_group.size(), 16);
     }
 
     #[test]
     fn test_stabilizer_iterator() {
-        let s1 = PauliString::from_stirng("XZZXI");
-        let s2 = PauliString::from_stirng("IXZZX");
-        let s3 = PauliString::from_stirng("XIXZZ");
-        let s4 = PauliString::from_stirng("ZXIXZ");
+        let s1 = Paulis::from_stirng("XZZXI");
+        let s2 = Paulis::from_stirng("IXZZX");
+        let s3 = Paulis::from_stirng("XIXZZ");
+        let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
         let mut iter = stabilizer_group.iter();
         let mut count = 0;
@@ -167,13 +167,13 @@ mod tests {
 
     #[test]
     fn test_stabilizer_include() {
-        let s1 = PauliString::from_stirng("XZZXI");
-        let s2 = PauliString::from_stirng("IXZZX");
-        let s3 = PauliString::from_stirng("XIXZZ");
-        let s4 = PauliString::from_stirng("ZXIXZ");
+        let s1 = Paulis::from_stirng("XZZXI");
+        let s2 = Paulis::from_stirng("IXZZX");
+        let s3 = Paulis::from_stirng("XIXZZ");
+        let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
-        let included_pauli = PauliString::from_stirng("YXXYI");
-        let not_included_pauli = PauliString::from_stirng("XXXXX");
+        let included_pauli = Paulis::from_stirng("YXXYI");
+        let not_included_pauli = Paulis::from_stirng("XXXXX");
         assert!(stabilizer_group.include(&included_pauli));
         assert!(!stabilizer_group.include(&not_included_pauli));
     }

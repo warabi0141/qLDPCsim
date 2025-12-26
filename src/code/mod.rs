@@ -1,2 +1,3 @@
-mod pauri_string;
+mod binary_symplectic;
+mod paulis;
 mod stabilizer;
