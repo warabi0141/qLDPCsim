@@ -3,13 +3,13 @@ use crate::code::stabilizer::StabilizerGroup;
 
 /// スタビライザー符号を表す構造体
 /// スタビライザー群を持ち、符号のパラメータ(n, k)を計算するメソッドを提供する
-/// 
+///
 /// # Examples
 /// ```rust
 /// use qldpc_sim::code::paulis::Paulis;
 /// use qldpc_sim::code::stabilizer::StabilizerGroup;
 /// use qldpc_sim::code::stabilizer_code::StabilizerCode;
-/// 
+///
 /// let s1 = Paulis::from_stirng("XZZXI");
 /// let s2 = Paulis::from_stirng("IXZZX");
 /// let s3 = Paulis::from_stirng("XIXZZ");

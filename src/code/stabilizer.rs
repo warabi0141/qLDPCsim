@@ -11,13 +11,13 @@ use bitvec::prelude::*;
 /// ```rust
 /// use qldpc_sim::code::paulis::Paulis;
 /// use qldpc_sim::code::stabilizer::StabilizerGroup;
-/// 
+///
 /// let s1 = Paulis::from_stirng("XZZXI");
 /// let s2 = Paulis::from_stirng("IXZZX");
 /// let s3 = Paulis::from_stirng("XIXZZ");
 /// let s4 = Paulis::from_stirng("ZXIXZ");
 /// let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
-/// 
+///
 /// // スタビライザ群の要素を全列挙
 /// for stabilizer in stabilizer_group.iter() {
 ///   println!("{:?}", stabilizer);

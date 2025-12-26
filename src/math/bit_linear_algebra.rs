@@ -6,7 +6,7 @@ use bitvec::prelude::*;
 /// ```rust
 /// use bitvec::prelude::*;
 /// use qldpc_sim::math::bit_linear_algebra::inner_product;
-/// 
+///
 /// let a = bitvec![u64, Lsb0; 1, 0, 1, 1];
 /// let b = bitvec![u64, Lsb0; 1, 1, 0, 1];
 /// let result = inner_product(&a, &b);
@@ -39,7 +39,7 @@ pub fn inner_product(a: &BitVec<u64, Lsb0>, b: &BitVec<u64, Lsb0>) -> bool {
 /// ```rust
 /// use bitvec::prelude::*;
 /// use qldpc_sim::math::bit_linear_algebra::rank;
-/// 
+///
 /// let vectors = vec![
 ///     bitvec![u64, Lsb0; 1, 0, 0, 1],
 ///     bitvec![u64, Lsb0; 0, 1, 1, 0],
@@ -94,7 +94,7 @@ pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
 /// ```rust
 /// use bitvec::prelude::*;
 /// use qldpc_sim::math::bit_linear_algebra::is_linearly_independent;
-/// 
+///
 /// let vectors = vec![
 ///     bitvec![u64, Lsb0; 1, 0, 0, 1],
 ///     bitvec![u64, Lsb0; 0, 1, 1, 0],

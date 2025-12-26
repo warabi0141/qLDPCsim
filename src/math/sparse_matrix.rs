@@ -14,12 +14,12 @@ pub struct SparseMatrix {
 /// 疎行列を表す構造体
 /// パリティチェック行列を表現するときに使う
 /// 行アクセス、列アクセスの両方に対応するため、行隣接リストと列隣接リストの両方を保持する
-/// 
+///
 /// # Examples
 /// ```rust
 /// use bitvec::prelude::*;
 /// use qldpc_sim::math::sparse_matrix::SparseMatrix;
-/// 
+///
 /// let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
 /// let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
 /// let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
@@ -81,7 +81,7 @@ impl SparseMatrix {
     /// ```
     /// use bitvec::prelude::*;
     /// use qldpc_sim::math::sparse_matrix::SparseMatrix;
-    /// 
+    ///
     /// let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
     /// let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
     /// let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
