@@ -1,5 +1,14 @@
 use bitvec::prelude::*;
 
+/// ビットベクトル同士の内積を計算する
+/// 
+/// # Examples
+/// ```rust
+/// let a = bitvec![u64, Lsb0; 1, 0, 1, 1];
+/// let b = bitvec![u64, Lsb0; 1, 1, 0, 1];
+/// let result = inner_product(&a, &b);
+/// assert_eq!(result, false);
+/// ```
 pub fn inner_product(a: &BitVec<u64, Lsb0>, b: &BitVec<u64, Lsb0>) -> bool {
     assert_eq!(a.len(), b.len(), "ベクトルの長さが一致しません: a.len() = {}, b.len() = {}", a.len(), b.len());
 
@@ -14,6 +23,19 @@ pub fn inner_product(a: &BitVec<u64, Lsb0>, b: &BitVec<u64, Lsb0>) -> bool {
     parity
 }
 
+/// ビット行列のランクを計算する
+/// ビット行列は、`Vec<BitVec>`で表され、各`BitVec`が行を表す
+/// 
+/// # Examples
+/// ```rust
+/// let vectors = vec![
+///     bitvec![u64, Lsb0; 1, 0, 0, 1],
+///     bitvec![u64, Lsb0; 0, 1, 1, 0],
+///     bitvec![u64, Lsb0; 1, 1, 1, 1],
+/// ];
+/// let rank = rank(&vectors);
+/// assert_eq!(rank, 2);
+/// ```
 pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
     let n = bit_matrix.len();
     if n == 0 {
@@ -54,6 +76,18 @@ pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
     rank
 }
 
+/// ビットベクトルの集合が線形独立かどうかを判定する
+/// 
+/// # Examples
+/// ```rust
+/// let vectors = vec![
+///     bitvec![u64, Lsb0; 1, 0, 0, 1],
+///     bitvec![u64, Lsb0; 0, 1, 1, 0],
+///     bitvec![u64, Lsb0; 1, 1, 0, 1],
+/// ];
+/// let is_independent = is_linearly_independent(&vectors);
+/// assert_eq!(is_independent, true);
+/// ```
 pub fn is_linearly_independent(vectors: &[BitVec<u64, Lsb0>]) -> bool {
     rank(vectors) == vectors.len()
 }

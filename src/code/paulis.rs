@@ -147,6 +147,14 @@ impl Paulis {
         self.num_qubits
     }
 
+    pub fn get_phase(&self) -> Phase {
+        self.phase
+    }
+
+    pub fn get_binary_symplectic_vector(&self) -> &BinarySymplecticVector {
+        &self.binary_symplectic_vector
+    }
+
     pub fn get_z_part(&self) -> &BitVec<u64, Lsb0> {
         &self.binary_symplectic_vector.get_z_part()
     }

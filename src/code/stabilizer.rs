@@ -3,6 +3,25 @@ use crate::math::bit_linear_algebra::is_linearly_independent;
 
 use bitvec::prelude::*;
 
+/// スタビライザー群を表す構造体
+/// 量子ビット数と生成子のベクトルを持つ
+/// 生成子は互いに可換で独立である必要があり、コンストラクタでチェックする
+/// 
+/// # Examples
+/// ```rust
+/// let s1 = Paulis::from_stirng("XZZXI");
+/// let s2 = Paulis::from_stirng("IXZZX");
+/// let s3 = Paulis::from_stirng("XIXZZ");
+/// let s4 = Paulis::from_stirng("ZXIXZ");
+/// let stabilizer_group = StabilizerGroup::new(5, vec![s1, s2, s3, s4]);
+/// ```
+/// 
+/// # Iteration
+/// ```rust
+/// for stabilizer in stabilizer_group.iter() {
+///    ... // stabilizerはPaulis型
+/// }
+/// ```
 #[derive(Debug, Clone)]
 pub struct StabilizerGroup {
     num_qubits: usize,
