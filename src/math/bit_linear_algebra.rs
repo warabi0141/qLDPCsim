@@ -4,6 +4,9 @@ use bitvec::prelude::*;
 ///
 /// # Examples
 /// ```rust
+/// use bitvec::prelude::*;
+/// use qldpc_sim::math::bit_linear_algebra::inner_product;
+/// 
 /// let a = bitvec![u64, Lsb0; 1, 0, 1, 1];
 /// let b = bitvec![u64, Lsb0; 1, 1, 0, 1];
 /// let result = inner_product(&a, &b);
@@ -34,6 +37,9 @@ pub fn inner_product(a: &BitVec<u64, Lsb0>, b: &BitVec<u64, Lsb0>) -> bool {
 ///
 /// # Examples
 /// ```rust
+/// use bitvec::prelude::*;
+/// use qldpc_sim::math::bit_linear_algebra::rank;
+/// 
 /// let vectors = vec![
 ///     bitvec![u64, Lsb0; 1, 0, 0, 1],
 ///     bitvec![u64, Lsb0; 0, 1, 1, 0],
@@ -58,7 +64,7 @@ pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
 
     for col in 0..m {
         let mut pivot_row = None;
-        for row in rank..n {
+        for (row, _) in mat.iter().enumerate().take(n).skip(rank) {
             if mat[row][col] {
                 pivot_row = Some(row);
                 break;
@@ -86,6 +92,9 @@ pub fn rank(bit_matrix: &[BitVec<u64, Lsb0>]) -> usize {
 ///
 /// # Examples
 /// ```rust
+/// use bitvec::prelude::*;
+/// use qldpc_sim::math::bit_linear_algebra::is_linearly_independent;
+/// 
 /// let vectors = vec![
 ///     bitvec![u64, Lsb0; 1, 0, 0, 1],
 ///     bitvec![u64, Lsb0; 0, 1, 1, 0],

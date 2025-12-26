@@ -1,7 +1,15 @@
 [package]
-name = "qLDPCsim"
+name = "qldpc_sim"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 bitvec = "1.0.1"
+
+[lib]
+name = "qldpc_sim"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qldpc_sim"
+path = "src/main.rs"

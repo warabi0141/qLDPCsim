@@ -1,7 +1,27 @@
 use crate::code::paulis::Paulis;
 use crate::code::stabilizer::StabilizerGroup;
 
-struct StabilizerCode {
+/// スタビライザー符号を表す構造体
+/// スタビライザー群を持ち、符号のパラメータ(n, k)を計算するメソッドを提供する
+/// 
+/// # Examples
+/// ```rust
+/// use qldpc_sim::code::paulis::Paulis;
+/// use qldpc_sim::code::stabilizer::StabilizerGroup;
+/// use qldpc_sim::code::stabilizer_code::StabilizerCode;
+/// 
+/// let s1 = Paulis::from_stirng("XZZXI");
+/// let s2 = Paulis::from_stirng("IXZZX");
+/// let s3 = Paulis::from_stirng("XIXZZ");
+/// let s4 = Paulis::from_stirng("ZXIXZ");
+/// let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
+/// let stabilizer_code = StabilizerCode::new(stabilizer_group);
+/// assert_eq!(stabilizer_code.get_n(), 5);
+/// assert_eq!(stabilizer_code.get_k(), 1);
+/// assert_eq!(stabilizer_code.get_num_stabilizers(), 4);
+/// ```
+#[derive(Debug, Clone)]
+pub struct StabilizerCode {
     stabilizer_group: StabilizerGroup,
 }
 

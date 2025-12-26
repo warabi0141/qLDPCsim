@@ -9,6 +9,9 @@ use bitvec::prelude::*;
 ///
 /// # Examples
 /// ```rust
+/// use bitvec::prelude::*;
+/// use qldpc_sim::code::binary_symplectic::BinarySymplecticVector;
+/// 
 /// let bsv = BinarySymplecticVector::new(
 ///    bitvec![u64, Lsb0; 1, 0, 1],
 ///   bitvec![u64, Lsb0; 0, 1, 1],
@@ -47,7 +50,10 @@ impl BinarySymplecticVector {
     /// このベクトルと他のベクトルのシンプレクティック積を計算する
     ///
     /// # Examples
-    /// ```rust
+    /// ```
+    /// use bitvec::prelude::*;
+    /// use qldpc_sim::code::binary_symplectic::BinarySymplecticVector;
+    /// 
     /// let v1 = BinarySymplecticVector::new(
     ///     bitvec![u64, Lsb0; 1, 0, 1],
     ///     bitvec![u64, Lsb0; 0, 1, 1],

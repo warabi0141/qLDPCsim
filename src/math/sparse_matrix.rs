@@ -11,6 +11,19 @@ pub struct SparseMatrix {
     pub col_adj: Vec<Vec<usize>>,
 }
 
+/// 疎行列を表す構造体
+/// パリティチェック行列を表現するときに使う
+/// 行アクセス、列アクセスの両方に対応するため、行隣接リストと列隣接リストの両方を保持する
+/// 
+/// # Examples
+/// ```rust
+/// use bitvec::prelude::*;
+/// use qldpc_sim::math::sparse_matrix::SparseMatrix;
+/// 
+/// let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+/// let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
+/// let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
+/// ```
 impl SparseMatrix {
     pub fn new(
         n_rows: usize,
@@ -64,8 +77,18 @@ impl SparseMatrix {
 
     /// 疎行列とバイナリベクトルの積を計算する
     ///
-    /// # Arguments
-    /// * `rhs` - 右側から掛けるビットベクトル (長さは self.n_cols と一致する必要がある)
+    /// # Examples
+    /// ```
+    /// use bitvec::prelude::*;
+    /// use qldpc_sim::math::sparse_matrix::SparseMatrix;
+    /// 
+    /// let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+    /// let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
+    /// let matrix = SparseMatrix::new(3, 4, row_adj, col_adj);
+    /// let error: BitVec<u64, Lsb0> = bitvec![u64, Lsb0; 1, 0, 1, 0];
+    /// let syndrome = matrix.multiply_with_bitvec(&error);
+    /// assert_eq!(syndrome, bitvec![1, 1, 1]);
+    /// ```
     pub fn multiply_with_bitvec(&self, rhs: &BitVec<u64, Lsb0>) -> BitVec<u64, Lsb0> {
         assert_eq!(
             self.n_cols,

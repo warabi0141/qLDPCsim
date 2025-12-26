@@ -8,6 +8,8 @@ use std::ops::Mul;
 ///
 /// # Examples
 /// ```rust
+/// use qldpc_sim::code::paulis::Phase;
+/// 
 /// let phase1 = Phase::I;
 /// let phase2 = Phase::MinusI;
 /// let result = phase1 * phase2; // resultはPhase::MinusOne
@@ -45,6 +47,8 @@ impl Mul for Phase {
 ///
 /// # Examples
 /// ```rust
+/// use qldpc_sim::code::paulis::Paulis;
+/// 
 /// let pauli = Paulis::from_stirng("+XZYI");
 /// let pauli_minus_i = Paulis::from_stirng("-iXZYI");
 /// let pauli_identity = Paulis::identity(3);
@@ -170,11 +174,11 @@ impl Paulis {
     }
 
     pub fn get_z_part(&self) -> &BitVec<u64, Lsb0> {
-        &self.binary_symplectic_vector.get_z_part()
+        self.binary_symplectic_vector.get_z_part()
     }
 
     pub fn get_x_part(&self) -> &BitVec<u64, Lsb0> {
-        &self.binary_symplectic_vector.get_x_part()
+        self.binary_symplectic_vector.get_x_part()
     }
 
     pub fn commutes(&self, other: &Paulis) -> bool {
