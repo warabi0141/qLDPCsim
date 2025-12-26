@@ -1,4 +1,5 @@
 use bitvec::prelude::*;
+use std::ops::Mul;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Phase {
@@ -8,6 +9,26 @@ enum Phase {
     MinusI,
 }
 
+impl Mul for Phase {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (Phase::One, p) | (p, Phase::One) => p,
+            (Phase::I, Phase::I) => Phase::MinusOne,
+            (Phase::I, Phase::MinusI) => Phase::One,
+            (Phase::MinusI, Phase::I) => Phase::One,
+            (Phase::MinusI, Phase::MinusI) => Phase::MinusOne,
+            (Phase::I, Phase::MinusOne) => Phase::MinusI,
+            (Phase::MinusOne, Phase::I) => Phase::MinusI,
+            (Phase::MinusI, Phase::MinusOne) => Phase::I,
+            (Phase::MinusOne, Phase::MinusI) => Phase::I,
+            (Phase::MinusOne, Phase::MinusOne) => Phase::One,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct PauliString {
     num_qubits: usize,
     phase: Phase,
@@ -96,6 +117,61 @@ impl PauliString {
     }
 }
 
+impl Mul<&PauliString> for &PauliString {
+    type Output = PauliString;
+
+    fn mul(self, rhs: &PauliString) -> Self::Output {
+        assert_eq!(self.num_qubits, rhs.num_qubits, "乗算するPauli文字列の量子ビット数が一致しません");
+        let mut phase = self.phase * rhs.phase;
+        let mut z_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
+        let mut x_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
+
+        for i in 0..self.num_qubits {
+            let a_z = self.z_part[i];
+            let a_x = self.x_part[i];
+            let b_z = rhs.z_part[i];
+            let b_x = rhs.x_part[i];
+
+            match (a_z, a_x, b_z, b_x) {
+                (false, false, _, _) | (_, _, false, false) => {}
+                (true, false, true, false) | (false, true, false, true) | (true, true, true, true) => {}
+                (false, true, true, true) | (true, true, true, false) | (true, false, false, true) => { phase = phase * Phase::I; }
+                (false, true, true, false) | (true, true, false, true) | (true, false, true, true) => { phase = phase * Phase::MinusI; }
+            }
+
+            z_part.push(a_z ^ b_z);
+            x_part.push(a_x ^ b_x);
+        }
+
+        PauliString::new(self.num_qubits, phase, z_part, x_part)
+    }
+}
+
+impl Mul<PauliString> for PauliString {
+    type Output = PauliString;
+
+    fn mul(self, rhs: PauliString) -> Self::Output {
+        &self * &rhs
+    }
+}
+
+impl Mul<&PauliString> for PauliString {
+    type Output = PauliString;
+
+    fn mul(self, rhs: &PauliString) -> Self::Output {
+        &self * rhs
+    }
+}
+
+impl Mul<PauliString> for &PauliString {
+    type Output = PauliString;
+
+    fn mul(self, rhs: PauliString) -> Self::Output {
+        self * &rhs
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,5 +195,19 @@ mod tests {
         assert_eq!(pauli_str.phase, Phase::One);
         assert_eq!(pauli_str.z_part, bitvec!(u64, Lsb0; 0, 0, 0, 0));
         assert_eq!(pauli_str.x_part, bitvec!(u64, Lsb0; 0, 0, 1, 0));
+    }
+
+    #[test]
+    fn test_pauli_string_multiplication() {
+        let pauli_str1 = PauliString::from_stirng("+XZIY");
+        let pauli_str2 = PauliString::from_stirng("-iYZXI");
+        let result = &pauli_str1 * &pauli_str2;
+        let answer = PauliString::from_stirng("+ZIXY");
+        assert_eq!(result, answer);
+
+        let pauli_str3 = PauliString::from_stirng("IIXI");
+        let result2 = pauli_str1 * pauli_str3;
+        let answer2 = PauliString::from_stirng("+XZXY");
+        assert_eq!(result2, answer2);
     }
 }
