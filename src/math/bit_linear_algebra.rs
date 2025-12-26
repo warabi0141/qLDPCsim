@@ -115,10 +115,10 @@ mod tests {
     fn test_inner_product() {
         let a = bitvec![u64, Lsb0; 1, 0, 1, 1];
         let b = bitvec![u64, Lsb0; 1, 1, 0, 1];
-        assert_eq!(inner_product(&a, &b), false);
+        assert!(!inner_product(&a, &b));
 
         let c = bitvec![u64, Lsb0; 1, 1, 0, 0];
-        assert_eq!(inner_product(&a, &c), true);
+        assert!(inner_product(&a, &c));
     }
 
     #[test]

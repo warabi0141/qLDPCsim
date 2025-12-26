@@ -182,9 +182,9 @@ mod tests {
         let s3 = Paulis::from_stirng("XIXZZ");
         let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
-        let mut iter = stabilizer_group.iter();
+        let iter = stabilizer_group.iter();
         let mut count = 0;
-        while let Some(_pauli_string) = iter.next() {
+        for _paulis in iter {
             count += 1;
         }
         assert_eq!(count, 16);

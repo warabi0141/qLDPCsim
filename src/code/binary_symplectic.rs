@@ -93,10 +93,10 @@ mod tests {
             BinarySymplecticVector::new(bitvec![u64, Lsb0; 1, 0, 1], bitvec![u64, Lsb0; 0, 1, 1]);
         let v2 =
             BinarySymplecticVector::new(bitvec![u64, Lsb0; 0, 1, 1], bitvec![u64, Lsb0; 1, 0, 1]);
-        assert_eq!(v1.symplectic_product(&v2), false);
+        assert!(!v1.symplectic_product(&v2));
 
         let v3 =
             BinarySymplecticVector::new(bitvec![u64, Lsb0; 0, 1, 1], bitvec![u64, Lsb0; 1, 1, 0]);
-        assert_eq!(v1.symplectic_product(&v3), true);
+        assert!(v1.symplectic_product(&v3));
     }
 }
