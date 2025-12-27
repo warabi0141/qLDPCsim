@@ -1,6 +1,7 @@
 use crate::code::paulis::{Paulis, Phase};
 use bitvec::prelude::*;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ErrorVector {
     x_part: BitVec<u64, Lsb0>,
     z_part: BitVec<u64, Lsb0>,

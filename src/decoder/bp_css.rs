@@ -1,5 +1,3 @@
-use core::error;
-
 use crate::code::css_code::CssCode;
 use crate::code::error_vector::{ErrorVector, Syndrome};
 use crate::decoder::bp::BpDecoder;

@@ -1,4 +1,4 @@
-use qldpc_sim::{channel::traits::ErrorChannel, math::sparse_matrix::IntoSparseMatrix, prelude::*};
+use qldpc_sim::{math::sparse_matrix::IntoSparseMatrix, prelude::*};
 
 fn main() {
     let hz = vec![
@@ -18,13 +18,27 @@ fn main() {
         hz.into_sparse_matrix(),
         hx.into_sparse_matrix(),
     );
-    let channel = DepolarizingChannel::new(9, 0.001);
+    let channel = DepolarizingChannel::new(9, 0.0001);
     let num_samples = 10000;
     let error_batch = channel.sample_batch(num_samples);
-    let mut num_error = 0;
+    let mut bp_decoder = BpDecoderCss::new(
+        &shor_code,
+        &channel,
+        BpMethod::ProductSum,
+        BpSchedule::Parallel,
+        20,
+        0.75,
+        false,
+    );
+    let mut num_errors = 0;
     for (i, error) in error_batch.iter().enumerate() {
-        num_error += error.num_errors();
+        let syndrome = shor_code.syndrome(error);
+        let decoded_error = bp_decoder.decode(&syndrome);
+        if decoded_error != *error {
+            num_errors += 1;
+            println!("Sample {}: Decoding failed.", i);
+        }
     }
-    let error_rate = num_error as f64 / (9.0 * num_samples as f64);
-    println!("Sampled error rate: {}", error_rate);
+    let error_rate = num_errors as f64 / num_samples as f64;
+    println!("Decoding error rate: {:.4}", error_rate);
 }
