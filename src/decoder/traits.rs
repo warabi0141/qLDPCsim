@@ -3,5 +3,5 @@ use crate::code::error_vector::Syndrome;
 
 pub trait Decoder {
     fn name(&self) -> &str;
-    fn decode(&self, syndrome: &Syndrome) -> ErrorVector;
+    fn decode(&mut self, syndrome: &Syndrome) -> ErrorVector;
 }

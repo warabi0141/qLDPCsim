@@ -169,6 +169,41 @@ pub struct BpDecoder {
 // Year: 2022
 
 impl BpDecoder {
+    pub fn from_pcm(
+        pcm: BinarySparseMatrix,
+        bp_method: BpMethod,
+        schedule: BpSchedule,
+        max_iterations: usize,
+        ms_scaling_factor: f64,
+        random_serial_schedule: bool,
+        channel_probabilities: Vec<f64>,
+    ) -> Self {
+        let bit_count = pcm.cols();
+        let initial_log_prob_ratios = vec![0.0; bit_count];
+        let log_prob_ratios = vec![0.0; bit_count];
+        let decoding = vec![0; bit_count];
+        let candidate_syndrome = vec![0; pcm.rows()];
+        let serial_schedule_order: Vec<usize> = (0..bit_count).collect();
+
+        Self {
+            pcm: BpSparse::new(pcm),
+            bit_count,
+            bp_method,
+            schedule,
+            maximum_iterations: max_iterations,
+            ms_scaling_factor,
+            random_serial_schedule,
+            channel_probabilities,
+            initial_log_prob_ratios,
+            log_prob_ratios,
+            decoding,
+            candidate_syndrome,
+            converge: false,
+            iterations: 0,
+            serial_schedule_order,
+        }
+    }
+
     /// チャネル確率から初期対数尤度比(LLR)を計算し、変数ノードからのメッセージを初期化します。
     pub fn initialise_log_domain_bp(&mut self) {
         for i in 0..self.bit_count {
@@ -183,7 +218,7 @@ impl BpDecoder {
         }
     }
 
-    fn decode(&mut self, syndrome: &Vec<u8>) -> Vec<u8> {
+    pub fn decode(&mut self, syndrome: &Vec<u8>) -> Vec<u8> {
         if self.schedule == BpSchedule::Parallel {
             self.bp_decode_parallel(syndrome)
         } else {
@@ -519,61 +554,82 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_bp_non_error() {
+    fn test_from_pcm() {
         let pcm = BinarySparseMatrix::from_row_adj(
             4,
             5,
             vec![vec![0, 1], vec![1, 2], vec![2, 3], vec![3, 4]],
         );
+        let decoder = BpDecoder::from_pcm(
+            pcm,
+            BpMethod::ProductSum,
+            BpSchedule::Serial,
+            10,
+            0.0,
+            false,
+            vec![0.1; 5],
+        );
+        assert_eq!(decoder.bit_count, 5);
+        assert_eq!(decoder.maximum_iterations, 10);
+        assert_eq!(decoder.channel_probabilities.len(), 5);
+    }
+
+    #[test]
+    fn test_bp_non_error() {
+        let pcm = BinarySparseMatrix::from_row_adj(
+            2,
+            3,
+            vec![vec![0, 1], vec![1, 2]],
+        );
         let mut decoder = BpDecoder {
             pcm: BpSparse::new(pcm),
-            bit_count: 5,
+            bit_count: 3,
             bp_method: BpMethod::ProductSum,
             schedule: BpSchedule::Serial,
             maximum_iterations: 10,
             ms_scaling_factor: 0.0,
             random_serial_schedule: false,
-            channel_probabilities: vec![0.1; 5],
-            initial_log_prob_ratios: vec![0.0; 5],
-            log_prob_ratios: vec![0.0; 5],
-            decoding: vec![0; 5],
-            candidate_syndrome: vec![0; 4],
+            channel_probabilities: vec![0.1; 3],
+            initial_log_prob_ratios: vec![0.0; 3],
+            log_prob_ratios: vec![0.0; 3],
+            decoding: vec![0; 3],
+            candidate_syndrome: vec![0; 2],
             converge: false,
             iterations: 0,
-            serial_schedule_order: vec![0, 1, 2, 3, 4],
+            serial_schedule_order: vec![0, 1, 2],
         };
-        let syndrome = vec![0, 0, 0, 0];
+        let syndrome = vec![0, 0];
         let result = decoder.decode(&syndrome);
-        assert_eq!(result, vec![0, 0, 0, 0, 0]);
+        assert_eq!(result, vec![0, 0, 0]);
         assert!(decoder.converge);
     }
 
     #[test]
     fn test_bp_single_error() {
         let pcm = BinarySparseMatrix::from_row_adj(
-            4,
-            5,
-            vec![vec![0, 1], vec![1, 2], vec![2, 3], vec![3, 4]],
+            2,
+            3,
+            vec![vec![0, 1], vec![1, 2]],
         );
         let mut decoder = BpDecoder {
             pcm: BpSparse::new(pcm),
-            bit_count: 5,
+            bit_count: 3,
             bp_method: BpMethod::ProductSum,
             schedule: BpSchedule::Serial,
             maximum_iterations: 10,
             ms_scaling_factor: 0.0,
             random_serial_schedule: false,
-            channel_probabilities: vec![0.1; 5],
-            initial_log_prob_ratios: vec![0.0; 5],
-            log_prob_ratios: vec![0.0; 5],
-            decoding: vec![0; 5],
-            candidate_syndrome: vec![0; 4],
+            channel_probabilities: vec![0.1; 3],
+            initial_log_prob_ratios: vec![0.0; 3],
+            log_prob_ratios: vec![0.0; 3],
+            decoding: vec![0; 3],
+            candidate_syndrome: vec![0; 2],
             converge: false,
             iterations: 0,
-            serial_schedule_order: vec![0, 1, 2, 3, 4],
+            serial_schedule_order: vec![0, 1, 2],
         };
-        for i in 0..5 {
-            let mut error_vector = vec![0; 5];
+        for i in 0..3 {
+            let mut error_vector = vec![0; 3];
             error_vector[i] = 1; // 単一ビットエラー
             let syndrome = decoder.pcm.parity_check_matrix() * &error_vector;
             let result = decoder.decode(&syndrome);

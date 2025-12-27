@@ -25,6 +25,29 @@ impl ErrorVector {
         Self::from_paulis(&paulis)
     }
 
+    pub fn from_u8vec(x_errors: Vec<u8>, z_errors: Vec<u8>) -> Self {
+        let num_qubits = x_errors.len();
+        assert_eq!(
+            num_qubits,
+            z_errors.len(),
+            "XエラーとZエラーの長さが一致しません"
+        );
+
+        let mut x_part = bitvec![u64, Lsb0; 0; num_qubits];
+        let mut z_part = bitvec![u64, Lsb0; 0; num_qubits];
+
+        for i in 0..num_qubits {
+            if x_errors[i] != 0 {
+                x_part.set(i, true);
+            }
+            if z_errors[i] != 0 {
+                z_part.set(i, true);
+            }
+        }
+
+        Self::new(x_part, z_part)
+    }
+
     pub fn x_part(&self) -> &BitVec<u64, Lsb0> {
         &self.x_part
     }
