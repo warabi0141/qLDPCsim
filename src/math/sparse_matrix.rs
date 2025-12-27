@@ -222,7 +222,7 @@ impl IntoSparseMatrix for Vec<Vec<i32>> {
         let mut row_adj: Vec<Vec<usize>> = vec![vec![]; n_rows];
 
         for row_idx in 0..n_rows {
-            for (col_idx,  _) in self.iter().enumerate().take(n_cols) {
+            for (col_idx, _) in self.iter().enumerate().take(n_cols) {
                 if self[row_idx][col_idx] != 0 && self[row_idx][col_idx] != 1 {
                     panic!(
                         "バイナリ行列ではない要素が見つかりました: self[{}][{}] = {}",
