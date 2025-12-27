@@ -64,8 +64,8 @@ impl Paulis {
     pub fn new(
         num_qubits: usize,
         phase: Phase,
-        z_part: BitVec<u64, Lsb0>,
         x_part: BitVec<u64, Lsb0>,
+        z_part: BitVec<u64, Lsb0>,
     ) -> Self {
         assert_eq!(
             num_qubits,
@@ -85,73 +85,73 @@ impl Paulis {
         Self {
             num_qubits,
             phase,
-            binary_symplectic_vector: BinarySymplecticVector::new(z_part, x_part),
+            binary_symplectic_vector: BinarySymplecticVector::new(x_part, z_part),
         }
     }
 
     pub fn from_stirng(s: &str) -> Self {
-        fn parse_phase(s: &str) -> Phase {
-            match s.chars().next() {
-                Some(first_char) => match first_char {
-                    '+' => match s.chars().nth(1) {
-                        Some(second_char) => match second_char {
-                            'I' | 'X' | 'Y' | 'Z' => Phase::One,
-                            'i' => Phase::I,
-                            _ => panic!("不正な文字が含まれています: {}", second_char),
-                        },
-                        None => panic!("演算子の情報がありません"),
-                    },
-                    '-' => match s.chars().nth(1) {
-                        Some(second_char) => match second_char {
-                            'I' | 'X' | 'Y' | 'Z' => Phase::MinusOne,
-                            'i' => Phase::MinusI,
-                            _ => panic!("不正な文字が含まれています: {}", second_char),
-                        },
-                        None => panic!("演算子の情報がありません"),
-                    },
-                    'i' => Phase::I,
-                    'I' | 'X' | 'Y' | 'Z' => Phase::One,
-                    _ => panic!("不正な文字が含まれています: {}", first_char),
-                },
-                None => panic!("空の文字列です"),
-            }
-        }
-
-        fn parse_pauli_s(s: &str) -> (BitVec<u64, Lsb0>, BitVec<u64, Lsb0>) {
-            let mut z_part = BitVec::<u64, Lsb0>::new();
-            let mut x_part = BitVec::<u64, Lsb0>::new();
-
-            for c in s.chars() {
-                match c {
-                    '+' | '-' | 'i' => continue,
-                    'I' => {
-                        z_part.push(false);
-                        x_part.push(false);
-                    }
-                    'X' => {
-                        z_part.push(false);
-                        x_part.push(true);
-                    }
-                    'Y' => {
-                        z_part.push(true);
-                        x_part.push(true);
-                    }
-                    'Z' => {
-                        z_part.push(true);
-                        x_part.push(false);
-                    }
-                    _ => panic!("不正な文字が含まれています: {}", c),
-                }
-            }
-
-            (z_part, x_part)
-        }
-
-        let phase = parse_phase(s);
-        let (z_part, x_part) = parse_pauli_s(s);
+        let phase = Self::parse_phase(s);
+        let (x_part, z_part) = Self::parse_paulis(s);
         let num_qubits = z_part.len();
 
-        Self::new(num_qubits, phase, z_part, x_part)
+        Self::new(num_qubits, phase, x_part, z_part)
+    }
+
+    fn parse_phase(s: &str) -> Phase {
+        match s.chars().next() {
+            Some(first_char) => match first_char {
+                '+' => match s.chars().nth(1) {
+                    Some(second_char) => match second_char {
+                        'I' | 'X' | 'Y' | 'Z' => Phase::One,
+                        'i' => Phase::I,
+                        _ => panic!("不正な文字が含まれています: {}", second_char),
+                    },
+                    None => panic!("演算子の情報がありません"),
+                },
+                '-' => match s.chars().nth(1) {
+                    Some(second_char) => match second_char {
+                        'I' | 'X' | 'Y' | 'Z' => Phase::MinusOne,
+                        'i' => Phase::MinusI,
+                        _ => panic!("不正な文字が含まれています: {}", second_char),
+                    },
+                    None => panic!("演算子の情報がありません"),
+                },
+                'i' => Phase::I,
+                'I' | 'X' | 'Y' | 'Z' => Phase::One,
+                _ => panic!("不正な文字が含まれています: {}", first_char),
+            },
+            None => panic!("空の文字列です"),
+        }
+    }
+
+    fn parse_paulis(s: &str) -> (BitVec<u64, Lsb0>, BitVec<u64, Lsb0>) {
+        let mut z_part = BitVec::<u64, Lsb0>::new();
+        let mut x_part = BitVec::<u64, Lsb0>::new();
+
+        for c in s.chars() {
+            match c {
+                '+' | '-' | 'i' => continue,
+                'I' => {
+                    z_part.push(false);
+                    x_part.push(false);
+                }
+                'X' => {
+                    z_part.push(false);
+                    x_part.push(true);
+                }
+                'Y' => {
+                    z_part.push(true);
+                    x_part.push(true);
+                }
+                'Z' => {
+                    z_part.push(true);
+                    x_part.push(false);
+                }
+                _ => panic!("不正な文字が含まれています: {}", c),
+            }
+        }
+
+        (x_part, z_part)
     }
 
     pub fn identity(num_qubits: usize) -> Self {
@@ -231,7 +231,7 @@ impl Mul<&Paulis> for &Paulis {
             x_part.push(a_x ^ b_x);
         }
 
-        Paulis::new(self.num_qubits, phase, z_part, x_part)
+        Paulis::new(self.num_qubits, phase, x_part, z_part)
     }
 }
 
@@ -303,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pauli_s_multiplication() {
+    fn test_paulis_multiplication() {
         let pauli_str1 = Paulis::from_stirng("+XZIY");
         let pauli_str2 = Paulis::from_stirng("-iYZXI");
         let result = &pauli_str1 * &pauli_str2;

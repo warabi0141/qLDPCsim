@@ -18,8 +18,8 @@ use crate::code::stabilizer::StabilizerGroup;
 /// let s4 = Paulis::from_stirng("ZXIXZ");
 /// let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
 /// let stabilizer_code = StabilizerCode::new("test code".to_string(), stabilizer_group);
-/// assert_eq!(stabilizer_code.get_n(), 5);
-/// assert_eq!(stabilizer_code.get_k(), 1);
+/// assert_eq!(stabilizer_code.n(), 5);
+/// assert_eq!(stabilizer_code.k(), 1);
 /// assert_eq!(stabilizer_code.get_num_stabilizers(), 4);
 /// ```
 #[derive(Debug, Clone)]
