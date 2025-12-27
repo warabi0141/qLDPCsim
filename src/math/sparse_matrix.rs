@@ -222,13 +222,13 @@ impl IntoSparseMatrix for Vec<Vec<i32>> {
         let mut row_adj: Vec<Vec<usize>> = vec![vec![]; n_rows];
 
         for row_idx in 0..n_rows {
-            for (col_idx, _) in self.iter().enumerate().take(n_cols) {
-                if self[row_idx][col_idx] != 0 && self[row_idx][col_idx] != 1 {
+            for (col_idx, col_item) in self[row_idx].iter().enumerate().take(n_cols) {
+                if *col_item != 0 && *col_item != 1 {
                     panic!(
                         "バイナリ行列ではない要素が見つかりました: self[{}][{}] = {}",
                         row_idx, col_idx, self[row_idx][col_idx]
                     );
-                } else if self[row_idx][col_idx] == 1 {
+                } else if *col_item == 1 {
                     row_adj[row_idx].push(col_idx);
                 }
             }
@@ -444,5 +444,21 @@ mod tests {
         let matrix = BinarySparseMatrix::from_row_adj(4, 4, row_adj);
         let rank = matrix.rank();
         assert_eq!(rank, 3);
+    }
+
+    #[test]
+    fn test_into_sparse_matrix() {
+        let vec = vec![
+            vec![1, 0, 1, 0],
+            vec![0, 1, 1, 0],
+            vec![0, 0, 1, 1],
+        ];
+        let matrix = BinarySparseMatrix::from_row_adj(
+            3,
+            4,
+            vec![vec![0, 2], vec![1, 2], vec![2, 3]],
+        );
+        let converted_matrix = vec.into_sparse_matrix();
+        assert_eq!(converted_matrix, matrix);
     }
 }
