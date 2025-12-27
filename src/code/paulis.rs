@@ -49,8 +49,8 @@ impl Mul for Phase {
 /// ```rust
 /// use qldpc_sim::code::paulis::Paulis;
 ///
-/// let pauli = Paulis::from_stirng("+XZYI");
-/// let pauli_minus_i = Paulis::from_stirng("-iXZYI");
+/// let pauli = Paulis::from_string("+XZYI");
+/// let pauli_minus_i = Paulis::from_string("-iXZYI");
 /// let pauli_identity = Paulis::identity(3);
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -89,7 +89,7 @@ impl Paulis {
         }
     }
 
-    pub fn from_stirng(s: &str) -> Self {
+    pub fn from_string(s: &str) -> Self {
         let phase = Self::parse_phase(s);
         let (x_part, z_part) = Self::parse_paulis(s);
         let num_qubits = z_part.len();
@@ -265,7 +265,7 @@ mod tests {
 
     #[test]
     fn test_paulis_from_string() {
-        let pauli_str = Paulis::from_stirng("+XZIY");
+        let pauli_str = Paulis::from_string("+XZIY");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
         assert_eq!(
@@ -277,7 +277,7 @@ mod tests {
             bitvec!(u64, Lsb0; 1, 0, 0, 1)
         );
 
-        let pauli_str = Paulis::from_stirng("-iYZXI");
+        let pauli_str = Paulis::from_string("-iYZXI");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::MinusI);
         assert_eq!(
@@ -289,7 +289,7 @@ mod tests {
             bitvec!(u64, Lsb0; 1, 0, 1, 0)
         );
 
-        let pauli_str = Paulis::from_stirng("IIXI");
+        let pauli_str = Paulis::from_string("IIXI");
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
         assert_eq!(
@@ -304,25 +304,25 @@ mod tests {
 
     #[test]
     fn test_paulis_multiplication() {
-        let pauli_str1 = Paulis::from_stirng("+XZIY");
-        let pauli_str2 = Paulis::from_stirng("-iYZXI");
+        let pauli_str1 = Paulis::from_string("+XZIY");
+        let pauli_str2 = Paulis::from_string("-iYZXI");
         let result = &pauli_str1 * &pauli_str2;
-        let answer = Paulis::from_stirng("+ZIXY");
+        let answer = Paulis::from_string("+ZIXY");
         assert_eq!(result, answer);
 
-        let pauli_str3 = Paulis::from_stirng("IIXI");
+        let pauli_str3 = Paulis::from_string("IIXI");
         let result2 = pauli_str1 * pauli_str3;
-        let answer2 = Paulis::from_stirng("+XZXY");
+        let answer2 = Paulis::from_string("+XZXY");
         assert_eq!(result2, answer2);
     }
 
     #[test]
     fn test_pauli_commutes() {
-        let pauli_str1 = Paulis::from_stirng("+XZIY");
-        let pauli_str2 = Paulis::from_stirng("-iYZXI");
+        let pauli_str1 = Paulis::from_string("+XZIY");
+        let pauli_str2 = Paulis::from_string("-iYZXI");
         assert!(!pauli_str1.commutes(&pauli_str2));
 
-        let pauli_str3 = Paulis::from_stirng("+IZII");
+        let pauli_str3 = Paulis::from_string("+IZII");
         assert!(pauli_str1.commutes(&pauli_str3));
     }
 }

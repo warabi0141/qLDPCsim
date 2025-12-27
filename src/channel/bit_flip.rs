@@ -1,8 +1,8 @@
 use crate::channel::error_channel::ErrorChannel;
 use crate::code::error_vector::ErrorVector;
+use bitvec::prelude::*;
 use rand::distr::Bernoulli;
 use rand::prelude::*;
-use bitvec::prelude::*;
 
 pub struct BitFlipChannel {
     num_qubits: usize,

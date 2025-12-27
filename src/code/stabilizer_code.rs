@@ -12,10 +12,10 @@ use crate::code::stabilizer::StabilizerGroup;
 /// use qldpc_sim::code::stabilizer_code::StabilizerCode;
 /// use qldpc_sim::code::quantum_code::QuantumCode;
 ///
-/// let s1 = Paulis::from_stirng("XZZXI");
-/// let s2 = Paulis::from_stirng("IXZZX");
-/// let s3 = Paulis::from_stirng("XIXZZ");
-/// let s4 = Paulis::from_stirng("ZXIXZ");
+/// let s1 = Paulis::from_string("XZZXI");
+/// let s2 = Paulis::from_string("IXZZX");
+/// let s3 = Paulis::from_string("XIXZZ");
+/// let s4 = Paulis::from_string("ZXIXZ");
 /// let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
 /// let stabilizer_code = StabilizerCode::new("test code".to_string(), stabilizer_group);
 /// assert_eq!(stabilizer_code.n(), 5);
@@ -73,10 +73,10 @@ mod tests {
     #[test]
     fn test_stabilizer_code_new() {
         let generators = vec![
-            Paulis::from_stirng("XZZXI"),
-            Paulis::from_stirng("IXZZX"),
-            Paulis::from_stirng("XIXZZ"),
-            Paulis::from_stirng("ZXIXZ"),
+            Paulis::from_string("XZZXI"),
+            Paulis::from_string("IXZZX"),
+            Paulis::from_string("XIXZZ"),
+            Paulis::from_string("ZXIXZ"),
         ];
         let stabilizer_code = StabilizerCode::from_generators("TestCode", generators);
         assert_eq!(stabilizer_code.n(), 5);

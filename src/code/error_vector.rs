@@ -1,3 +1,6 @@
+use core::error;
+
+use crate::code::paulis::{Paulis, Phase};
 use bitvec::prelude::*;
 
 pub struct ErrorVector {
@@ -15,6 +18,15 @@ impl ErrorVector {
         Self { x_part, z_part }
     }
 
+    pub fn from_paulis(paulis: &Paulis) -> Self {
+        Self::new(paulis.x_part().clone(), paulis.z_part().clone())
+    }
+
+    pub fn from_string(s: &str) -> Self {
+        let paulis = Paulis::from_string(s);
+        Self::from_paulis(&paulis)
+    }
+
     pub fn x_part(&self) -> &BitVec<u64, Lsb0> {
         &self.x_part
     }
@@ -25,6 +37,20 @@ impl ErrorVector {
 
     pub fn num_qubits(&self) -> usize {
         self.x_part.len()
+    }
+
+    pub fn num_errors(&self) -> usize {
+        let error_vec = self.x_part().clone() | self.z_part().clone();
+        error_vec.count_ones()
+    }
+
+    pub fn to_paulis(&self) -> Paulis {
+        Paulis::new(
+            self.num_qubits(),
+            Phase::One,
+            self.x_part.clone(),
+            self.z_part.clone(),
+        )
     }
 }
 

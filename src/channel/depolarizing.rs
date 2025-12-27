@@ -1,8 +1,8 @@
-use crate::code::error_vector::ErrorVector;
 use crate::channel::error_channel::ErrorChannel;
+use crate::code::error_vector::ErrorVector;
+use bitvec::prelude::*;
 use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
-use bitvec::prelude::*;
 
 pub struct DepolarizingChannel {
     num_qubits: usize,
@@ -16,7 +16,12 @@ impl DepolarizingChannel {
             error_rate >= 0.0 && error_rate <= 1.0,
             "Error rate must be between 0 and 1"
         );
-        let weights = [1.0 - error_rate, error_rate / 3.0, error_rate / 3.0, error_rate / 3.0];
+        let weights = [
+            1.0 - error_rate,
+            error_rate / 3.0,
+            error_rate / 3.0,
+            error_rate / 3.0,
+        ];
         let distribution = WeightedIndex::new(&weights).unwrap();
 
         Self {

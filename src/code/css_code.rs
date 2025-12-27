@@ -3,7 +3,7 @@ use crate::code::quantum_code::QuantumCode;
 use crate::code::stabilizer_code::StabilizerCode;
 use crate::math::sparse_matrix::BinarySparseMatrix;
 
-struct CssCode {
+pub struct CssCode {
     code_name: String,
     hz: BinarySparseMatrix,
     hx: BinarySparseMatrix,

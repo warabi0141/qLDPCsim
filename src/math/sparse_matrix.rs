@@ -1,4 +1,4 @@
-use bitvec::prelude::*;
+use bitvec::{prelude::*, vec};
 use std::ops::Mul;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -207,6 +207,33 @@ impl BinarySparseMatrix {
 
     pub fn transpose(&self) -> Self {
         BinarySparseMatrix::from_col_adj(self.n_cols, self.n_rows, self.row_adj.clone())
+    }
+}
+
+pub trait IntoSparseMatrix {
+    fn into_sparse_matrix(self) -> BinarySparseMatrix;
+}
+
+impl IntoSparseMatrix for Vec<Vec<i32>> {
+    fn into_sparse_matrix(self) -> BinarySparseMatrix {
+        let n_rows = self.len();
+        let n_cols = self[0].len();
+
+        let mut row_adj: Vec<Vec<usize>> = vec![vec![]; n_rows];
+
+        for row_idx in 0..n_rows {
+            for (col_idx,  _) in self.iter().enumerate().take(n_cols) {
+                if self[row_idx][col_idx] != 0 && self[row_idx][col_idx] != 1 {
+                    panic!(
+                        "バイナリ行列ではない要素が見つかりました: self[{}][{}] = {}",
+                        row_idx, col_idx, self[row_idx][col_idx]
+                    );
+                } else if self[row_idx][col_idx] == 1 {
+                    row_adj[row_idx].push(col_idx);
+                }
+            }
+        }
+        BinarySparseMatrix::from_row_adj(n_rows, n_cols, row_adj)
     }
 }
 

@@ -14,15 +14,15 @@ pub mod code {
 }
 
 pub mod channel {
-    pub mod error_channel;
-    pub mod depolarizing;
     pub mod bit_flip;
+    pub mod depolarizing;
+    pub mod error_channel;
 }
 
 pub mod prelude {
-    pub use crate::code::binary_symplectic::BinarySymplecticVector;
-    pub use crate::code::paulis::Paulis;
-    pub use crate::code::stabilizer::StabilizerGroup;
+    pub use crate::channel::bit_flip::BitFlipChannel;
+    pub use crate::channel::depolarizing::DepolarizingChannel;
+    pub use crate::code::css_code::CssCode;
     pub use crate::code::stabilizer_code::StabilizerCode;
-    pub use bitvec::prelude::*;
+    pub use crate::math::sparse_matrix::BinarySparseMatrix;
 }
