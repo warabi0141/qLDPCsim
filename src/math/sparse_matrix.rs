@@ -115,6 +115,14 @@ impl BinarySparseMatrix {
         (self.n_rows, self.n_cols)
     }
 
+    pub fn row_adj(&self) -> &[Vec<usize>] {
+        &self.row_adj
+    }
+
+    pub fn col_adj(&self) -> &[Vec<usize>] {
+        &self.col_adj
+    }
+
     /// 疎行列のままランクを計算する（ガウスの消去法）
     ///
     /// # Examples

@@ -52,7 +52,7 @@ impl BinaryDenseMatrix {
         (self.rows(), self.cols())
     }
 
-    pub fn get_data(&self) -> &Vec<BitVec<u64, Lsb0>> {
+    pub fn get_data(&self) -> &[BitVec<u64, Lsb0>] {
         &self.data
     }
 

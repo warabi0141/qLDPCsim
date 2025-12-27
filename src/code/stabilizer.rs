@@ -61,7 +61,7 @@ impl StabilizerGroup {
         self.generators[0].num_qubits()
     }
 
-    pub fn generators(&self) -> &Vec<Paulis> {
+    pub fn generators(&self) -> &[Paulis] {
         &self.generators
     }
 
