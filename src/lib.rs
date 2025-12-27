@@ -32,8 +32,8 @@ pub mod prelude {
     pub use crate::code::css_code::CssCode;
     pub use crate::code::stabilizer_code::StabilizerCode;
     pub use crate::code::traits::QuantumCode;
-    pub use crate::decoder::traits::Decoder;
     pub use crate::decoder::bp::*;
     pub use crate::decoder::bp_css::*;
+    pub use crate::decoder::traits::Decoder;
     pub use crate::math::sparse_matrix::BinarySparseMatrix;
 }
