@@ -13,6 +13,11 @@ pub mod code {
     pub mod stabilizer_code;
 }
 
+pub mod channel {
+    pub mod depolarizing;
+    pub mod error_channel;
+}
+
 pub mod prelude {
     pub use crate::code::binary_symplectic::BinarySymplecticVector;
     pub use crate::code::paulis::Paulis;
