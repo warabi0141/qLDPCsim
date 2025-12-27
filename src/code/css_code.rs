@@ -1,6 +1,5 @@
 use crate::code::error_vector::{ErrorVector, Syndrome};
-use crate::code::quantum_code::QuantumCode;
-use crate::code::stabilizer_code::StabilizerCode;
+use crate::code::traits::QuantumCode;
 use crate::math::sparse_matrix::BinarySparseMatrix;
 
 pub struct CssCode {
@@ -12,10 +11,6 @@ pub struct CssCode {
 impl CssCode {
     pub fn new(code_name: String, hz: BinarySparseMatrix, hx: BinarySparseMatrix) -> Self {
         Self { code_name, hz, hx }
-    }
-
-    pub fn from_stabilizer_code(stabilizer_code: &StabilizerCode) -> Self {
-        todo!("Implement conversion from StabilizerCode to CssCode")
     }
 
     pub fn from_parity_check_matrices(

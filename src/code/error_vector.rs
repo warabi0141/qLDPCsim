@@ -1,5 +1,3 @@
-use core::error;
-
 use crate::code::paulis::{Paulis, Phase};
 use bitvec::prelude::*;
 

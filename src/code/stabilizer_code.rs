@@ -1,6 +1,6 @@
 use crate::code::paulis::Paulis;
-use crate::code::quantum_code::QuantumCode;
 use crate::code::stabilizer::StabilizerGroup;
+use crate::code::traits::QuantumCode;
 
 /// スタビライザー符号を表す構造体
 /// スタビライザー群を持ち、符号のパラメータ(n, k)を計算するメソッドを提供する
@@ -10,7 +10,7 @@ use crate::code::stabilizer::StabilizerGroup;
 /// use qldpc_sim::code::paulis::Paulis;
 /// use qldpc_sim::code::stabilizer::StabilizerGroup;
 /// use qldpc_sim::code::stabilizer_code::StabilizerCode;
-/// use qldpc_sim::code::quantum_code::QuantumCode;
+/// use qldpc_sim::code::traits::QuantumCode;
 ///
 /// let s1 = Paulis::from_string("XZZXI");
 /// let s2 = Paulis::from_string("IXZZX");

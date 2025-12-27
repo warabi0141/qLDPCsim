@@ -1,4 +1,4 @@
-use bitvec::{prelude::*, vec};
+use bitvec::prelude::*;
 use std::ops::Mul;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -448,16 +448,9 @@ mod tests {
 
     #[test]
     fn test_into_sparse_matrix() {
-        let vec = vec![
-            vec![1, 0, 1, 0],
-            vec![0, 1, 1, 0],
-            vec![0, 0, 1, 1],
-        ];
-        let matrix = BinarySparseMatrix::from_row_adj(
-            3,
-            4,
-            vec![vec![0, 2], vec![1, 2], vec![2, 3]],
-        );
+        let vec = vec![vec![1, 0, 1, 0], vec![0, 1, 1, 0], vec![0, 0, 1, 1]];
+        let matrix =
+            BinarySparseMatrix::from_row_adj(3, 4, vec![vec![0, 2], vec![1, 2], vec![2, 3]]);
         let converted_matrix = vec.into_sparse_matrix();
         assert_eq!(converted_matrix, matrix);
     }

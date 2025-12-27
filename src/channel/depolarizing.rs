@@ -1,4 +1,4 @@
-use crate::channel::error_channel::ErrorChannel;
+use crate::channel::traits::ErrorChannel;
 use crate::code::error_vector::ErrorVector;
 use bitvec::prelude::*;
 use rand::distr::weighted::WeightedIndex;

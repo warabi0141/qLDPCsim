@@ -1,7 +1,4 @@
-use qldpc_sim::{
-    channel::error_channel::ErrorChannel, code::error_vector::ErrorVector,
-    math::sparse_matrix::IntoSparseMatrix, prelude::*,
-};
+use qldpc_sim::{channel::traits::ErrorChannel, math::sparse_matrix::IntoSparseMatrix, prelude::*};
 
 fn main() {
     let hz = vec![

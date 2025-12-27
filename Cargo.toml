@@ -14,3 +14,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "qldpc_sim"
 path = "src/main.rs"
+
+[features]
+default = []
+debug = []
