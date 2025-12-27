@@ -6,6 +6,7 @@ pub mod math {
 pub mod code {
     pub mod binary_symplectic;
     pub mod paulis;
+    pub mod quantum_code;
     pub mod stabilizer;
     pub mod stabilizer_code;
 }
