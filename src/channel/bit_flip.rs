@@ -51,6 +51,18 @@ impl ErrorChannel for BitFlipChannel {
     fn sample_batch(&self, num_samples: usize) -> Vec<ErrorVector> {
         (0..num_samples).map(|_| self.sample()).collect()
     }
+
+    fn x_error_rate(&self) -> f64 {
+        self.error_rate
+    }
+
+    fn y_error_rate(&self) -> f64 {
+        0.0
+    }
+
+    fn z_error_rate(&self) -> f64 {
+        0.0
+    }
 }
 
 #[cfg(test)]

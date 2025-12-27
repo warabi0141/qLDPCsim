@@ -75,6 +75,18 @@ impl ErrorChannel for DepolarizingChannel {
     fn sample_batch(&self, num_samples: usize) -> Vec<ErrorVector> {
         (0..num_samples).map(|_| self.sample()).collect()
     }
+
+    fn x_error_rate(&self) -> f64 {
+        self.error_rate / 3.0 // X errors only
+    }
+
+    fn y_error_rate(&self) -> f64 {
+        self.error_rate / 3.0 // Y errors only
+    }
+
+    fn z_error_rate(&self) -> f64 {
+        self.error_rate / 3.0 // Z errors only
+    }
 }
 
 #[cfg(test)]

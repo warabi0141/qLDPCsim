@@ -123,6 +123,14 @@ impl BinarySparseMatrix {
         &self.col_adj
     }
 
+    pub fn nonzero_rows(&self, col_idx: usize) -> &[usize] {
+        &self.col_adj[col_idx]
+    }
+
+    pub fn nonzero_cols(&self, row_idx: usize) -> &[usize] {
+        &self.row_adj[row_idx]
+    }
+
     /// 疎行列のままランクを計算する（ガウスの消去法）
     ///
     /// # Examples
@@ -292,6 +300,58 @@ impl Mul<BitVec<u64, Lsb0>> for &BinarySparseMatrix {
     }
 }
 
+/// バイナリ疎行列とベクトルの積を計算する
+impl Mul<&Vec<u8>> for &BinarySparseMatrix {
+    type Output = Vec<u8>;
+
+    fn mul(self, rhs: &Vec<u8>) -> Self::Output {
+        assert_eq!(
+            self.n_cols,
+            rhs.len(),
+            "行列の列数({})とベクトルの長さ({})が一致していません",
+            self.n_cols,
+            rhs.len()
+        );
+
+        let mut result = vec![0u8; self.n_rows];
+
+        for (row_idx, neighbors) in self.row_adj.iter().enumerate() {
+            let mut sum = 0u8;
+
+            for &col_idx in neighbors {
+                sum ^= rhs[col_idx];
+            }
+
+            result[row_idx] = sum;
+        }
+        result
+    }
+}
+
+impl Mul<Vec<u8>> for BinarySparseMatrix {
+    type Output = Vec<u8>;
+
+    fn mul(self, rhs: Vec<u8>) -> Self::Output {
+        &self * &rhs
+    }
+}
+
+impl Mul<&Vec<u8>> for BinarySparseMatrix {
+    type Output = Vec<u8>;
+
+    fn mul(self, rhs: &Vec<u8>) -> Self::Output {
+        &self * rhs
+    }
+}
+
+impl Mul<Vec<u8>> for &BinarySparseMatrix {
+    type Output = Vec<u8>;
+
+    fn mul(self, rhs: Vec<u8>) -> Self::Output {
+        self * &rhs
+    }
+}
+
 /// バイナリ疎行列とバイナリ疎行列の積を計算する
 impl Mul<&BinarySparseMatrix> for &BinarySparseMatrix {
     type Output = BinarySparseMatrix;
@@ -394,6 +454,22 @@ mod tests {
         let col_adj = vec![vec![0], vec![0, 1], vec![1, 2], vec![2]];
         let matrix_from_col_adj = BinarySparseMatrix::from_col_adj(3, 4, col_adj);
         assert_eq!(matrix_from_col_adj, matrix);
+    }
+
+    #[test]
+    fn test_nonzero_rows() {
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+        let matrix = BinarySparseMatrix::from_row_adj(3, 4, row_adj);
+        let nonzero_rows = matrix.nonzero_rows(1);
+        assert_eq!(nonzero_rows, &[0, 1]);
+    }
+
+    #[test]
+    fn test_nonzero_cols() {
+        let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
+        let matrix = BinarySparseMatrix::from_row_adj(3, 4, row_adj);
+        let nonzero_cols = matrix.nonzero_cols(1);
+        assert_eq!(nonzero_cols, &[0, 1]);
     }
 
     #[test]
