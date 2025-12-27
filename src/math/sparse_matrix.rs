@@ -469,7 +469,7 @@ mod tests {
         let row_adj = vec![vec![0, 1], vec![1, 2], vec![2, 3]];
         let matrix = BinarySparseMatrix::from_row_adj(3, 4, row_adj);
         let nonzero_cols = matrix.nonzero_cols(1);
-        assert_eq!(nonzero_cols, &[0, 1]);
+        assert_eq!(nonzero_cols, &[1, 2]);
     }
 
     #[test]
