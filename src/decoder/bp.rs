@@ -576,11 +576,7 @@ mod tests {
 
     #[test]
     fn test_bp_non_error() {
-        let pcm = BinarySparseMatrix::from_row_adj(
-            2,
-            3,
-            vec![vec![0, 1], vec![1, 2]],
-        );
+        let pcm = BinarySparseMatrix::from_row_adj(2, 3, vec![vec![0, 1], vec![1, 2]]);
         let mut decoder = BpDecoder {
             pcm: BpSparse::new(pcm),
             bit_count: 3,
@@ -606,11 +602,7 @@ mod tests {
 
     #[test]
     fn test_bp_single_error() {
-        let pcm = BinarySparseMatrix::from_row_adj(
-            2,
-            3,
-            vec![vec![0, 1], vec![1, 2]],
-        );
+        let pcm = BinarySparseMatrix::from_row_adj(2, 3, vec![vec![0, 1], vec![1, 2]]);
         let mut decoder = BpDecoder {
             pcm: BpSparse::new(pcm),
             bit_count: 3,

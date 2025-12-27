@@ -1,11 +1,11 @@
 use core::error;
 
-use crate::decoder::bp::BpDecoder;
-use crate::decoder::bp::BpSchedule;
-use crate::decoder::bp::BpMethod;
 use crate::code::css_code::CssCode;
-use crate::decoder::traits::Decoder;
 use crate::code::error_vector::{ErrorVector, Syndrome};
+use crate::decoder::bp::BpDecoder;
+use crate::decoder::bp::BpMethod;
+use crate::decoder::bp::BpSchedule;
+use crate::decoder::traits::Decoder;
 use crate::prelude::ErrorChannel;
 
 pub struct BpDecoderCss {
@@ -15,14 +15,13 @@ pub struct BpDecoderCss {
 
 impl BpDecoderCss {
     pub fn new<C: ErrorChannel>(
-        code: &CssCode, 
-        error_channel: &C, 
+        code: &CssCode,
+        error_channel: &C,
         bp_method: BpMethod,
         schedule: BpSchedule,
         max_iterations: usize,
         ms_scaling_factor: f64,
         random_serial_schedule: bool,
-
     ) -> Self {
         let hz = code.hz().clone();
         let hx = code.hx().clone();
@@ -34,26 +33,29 @@ impl BpDecoderCss {
         let channel_probabilities_z = vec![error_rate_z; code.num_qubits()];
 
         let decoder_x = BpDecoder::from_pcm(
-            hx, 
-            bp_method, 
-            schedule, 
-            max_iterations, 
-            ms_scaling_factor, 
-            random_serial_schedule, 
+            hx,
+            bp_method,
+            schedule,
+            max_iterations,
+            ms_scaling_factor,
+            random_serial_schedule,
             channel_probabilities_z,
         );
 
         let decoder_z = BpDecoder::from_pcm(
-            hz, 
-            bp_method, 
-            schedule, 
-            max_iterations, 
-            ms_scaling_factor, 
-            random_serial_schedule, 
+            hz,
+            bp_method,
+            schedule,
+            max_iterations,
+            ms_scaling_factor,
+            random_serial_schedule,
             channel_probabilities_x,
         );
 
-        BpDecoderCss { decoder_x, decoder_z }
+        BpDecoderCss {
+            decoder_x,
+            decoder_z,
+        }
     }
 }
 
@@ -63,8 +65,18 @@ impl Decoder for BpDecoderCss {
     }
 
     fn decode(&mut self, syndrome: &Syndrome) -> ErrorVector {
-        let syndrome_x = syndrome.x_syndrome().as_bitslice().iter().map(|bit| if *bit { 1 } else { 0 }).collect::<Vec<u8>>();
-        let syndrome_z = syndrome.z_syndrome().as_bitslice().iter().map(|bit| if *bit { 1 } else { 0 }).collect::<Vec<u8>>();
+        let syndrome_x = syndrome
+            .x_syndrome()
+            .as_bitslice()
+            .iter()
+            .map(|bit| if *bit { 1 } else { 0 })
+            .collect::<Vec<u8>>();
+        let syndrome_z = syndrome
+            .z_syndrome()
+            .as_bitslice()
+            .iter()
+            .map(|bit| if *bit { 1 } else { 0 })
+            .collect::<Vec<u8>>();
 
         let error_z = self.decoder_x.decode(&syndrome_x);
         let error_x = self.decoder_z.decode(&syndrome_z);
@@ -140,14 +152,14 @@ mod tests {
         );
 
         // Introduce an X error on qubit 0
-        let error_vector = ErrorVector::from_u8vec(
-            vec![1, 0, 0, 0, 0, 0, 0, 0, 0],
-            vec![0; 9],
-        );
+        let error_vector = ErrorVector::from_u8vec(vec![1, 0, 0, 0, 0, 0, 0, 0, 0], vec![0; 9]);
         let syndrome = css_code.syndrome(&error_vector);
 
         let decoded_error = decoder.decode(&syndrome);
-        assert_eq!(decoded_error.x_part(), &bitvec![u64, Lsb0; 1, 0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(
+            decoded_error.x_part(),
+            &bitvec![u64, Lsb0; 1, 0, 0, 0, 0, 0, 0, 0, 0]
+        );
         assert_eq!(decoded_error.z_part(), &bitvec![u64, Lsb0; 0; 9]);
     }
 }

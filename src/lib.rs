@@ -20,8 +20,8 @@ pub mod channel {
 }
 
 pub mod decoder {
-    pub mod bp_css;
     pub mod bp;
+    pub mod bp_css;
     pub mod traits;
 }
 
