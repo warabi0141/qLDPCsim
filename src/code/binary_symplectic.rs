@@ -19,12 +19,12 @@ use bitvec::prelude::*;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinarySymplecticVector {
-    z_part: BitVec<u64, Lsb0>,
     x_part: BitVec<u64, Lsb0>,
+    z_part: BitVec<u64, Lsb0>,
 }
 
 impl BinarySymplecticVector {
-    pub fn new(z_part: BitVec<u64, Lsb0>, x_part: BitVec<u64, Lsb0>) -> Self {
+    pub fn new(x_part: BitVec<u64, Lsb0>, z_part: BitVec<u64, Lsb0>) -> Self {
         assert_eq!(
             z_part.len(),
             x_part.len(),

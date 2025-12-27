@@ -51,16 +51,16 @@ impl StabilizerCode {
 }
 
 impl QuantumCode for StabilizerCode {
-    fn get_code_name(&self) -> &str {
+    fn code_name(&self) -> &str {
         &self.code_name
     }
 
-    fn get_n(&self) -> usize {
+    fn n(&self) -> usize {
         self.stabilizer_group.get_num_qubits()
     }
 
-    fn get_k(&self) -> usize {
-        let n = self.get_n();
+    fn k(&self) -> usize {
+        let n = self.n();
         let r = self.get_num_stabilizers();
         n - r
     }
@@ -79,8 +79,8 @@ mod tests {
             Paulis::from_stirng("ZXIXZ"),
         ];
         let stabilizer_code = StabilizerCode::from_generators("TestCode", generators);
-        assert_eq!(stabilizer_code.get_n(), 5);
-        assert_eq!(stabilizer_code.get_k(), 1);
+        assert_eq!(stabilizer_code.n(), 5);
+        assert_eq!(stabilizer_code.k(), 1);
         assert_eq!(stabilizer_code.get_num_stabilizers(), 4);
     }
 }
