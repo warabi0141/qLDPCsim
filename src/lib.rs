@@ -14,8 +14,9 @@ pub mod code {
 }
 
 pub mod channel {
-    pub mod depolarizing;
     pub mod error_channel;
+    pub mod depolarizing;
+    pub mod bit_flip;
 }
 
 pub mod prelude {
