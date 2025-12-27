@@ -161,24 +161,24 @@ impl Paulis {
         Self::new(num_qubits, Phase::One, z_part, x_part)
     }
 
-    pub fn get_num_qubits(&self) -> usize {
+    pub fn num_qubits(&self) -> usize {
         self.num_qubits
     }
 
-    pub fn get_phase(&self) -> Phase {
+    pub fn phase(&self) -> Phase {
         self.phase
     }
 
-    pub fn get_binary_symplectic_vector(&self) -> &BinarySymplecticVector {
+    pub fn binary_symplectic_vector(&self) -> &BinarySymplecticVector {
         &self.binary_symplectic_vector
     }
 
-    pub fn get_z_part(&self) -> &BitVec<u64, Lsb0> {
-        self.binary_symplectic_vector.get_z_part()
+    pub fn z_part(&self) -> &BitVec<u64, Lsb0> {
+        self.binary_symplectic_vector.z_part()
     }
 
-    pub fn get_x_part(&self) -> &BitVec<u64, Lsb0> {
-        self.binary_symplectic_vector.get_x_part()
+    pub fn x_part(&self) -> &BitVec<u64, Lsb0> {
+        self.binary_symplectic_vector.x_part()
     }
 
     pub fn commutes(&self, other: &Paulis) -> bool {
@@ -205,10 +205,10 @@ impl Mul<&Paulis> for &Paulis {
         let mut x_part = BitVec::<u64, Lsb0>::with_capacity(self.num_qubits);
 
         for i in 0..self.num_qubits {
-            let a_z = self.binary_symplectic_vector.get_z_part()[i];
-            let a_x = self.binary_symplectic_vector.get_x_part()[i];
-            let b_z = rhs.binary_symplectic_vector.get_z_part()[i];
-            let b_x = rhs.binary_symplectic_vector.get_x_part()[i];
+            let a_z = self.binary_symplectic_vector.z_part()[i];
+            let a_x = self.binary_symplectic_vector.x_part()[i];
+            let b_z = rhs.binary_symplectic_vector.z_part()[i];
+            let b_x = rhs.binary_symplectic_vector.x_part()[i];
 
             match (a_z, a_x, b_z, b_x) {
                 (false, false, _, _) | (_, _, false, false) => {}
@@ -269,11 +269,11 @@ mod tests {
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
         assert_eq!(
-            pauli_str.binary_symplectic_vector.get_z_part().clone(),
+            pauli_str.binary_symplectic_vector.z_part().clone(),
             bitvec!(u64, Lsb0; 0, 1, 0, 1)
         );
         assert_eq!(
-            pauli_str.binary_symplectic_vector.get_x_part().clone(),
+            pauli_str.binary_symplectic_vector.x_part().clone(),
             bitvec!(u64, Lsb0; 1, 0, 0, 1)
         );
 
@@ -281,11 +281,11 @@ mod tests {
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::MinusI);
         assert_eq!(
-            pauli_str.binary_symplectic_vector.get_z_part().clone(),
+            pauli_str.binary_symplectic_vector.z_part().clone(),
             bitvec!(u64, Lsb0; 1, 1, 0, 0)
         );
         assert_eq!(
-            pauli_str.binary_symplectic_vector.get_x_part().clone(),
+            pauli_str.binary_symplectic_vector.x_part().clone(),
             bitvec!(u64, Lsb0; 1, 0, 1, 0)
         );
 
@@ -293,11 +293,11 @@ mod tests {
         assert_eq!(pauli_str.num_qubits, 4);
         assert_eq!(pauli_str.phase, Phase::One);
         assert_eq!(
-            pauli_str.binary_symplectic_vector.get_z_part().clone(),
+            pauli_str.binary_symplectic_vector.z_part().clone(),
             bitvec!(u64, Lsb0; 0, 0, 0, 0)
         );
         assert_eq!(
-            pauli_str.binary_symplectic_vector.get_x_part().clone(),
+            pauli_str.binary_symplectic_vector.x_part().clone(),
             bitvec!(u64, Lsb0; 0, 0, 1, 0)
         );
     }

@@ -20,7 +20,7 @@ use crate::code::stabilizer::StabilizerGroup;
 /// let stabilizer_code = StabilizerCode::new("test code".to_string(), stabilizer_group);
 /// assert_eq!(stabilizer_code.n(), 5);
 /// assert_eq!(stabilizer_code.k(), 1);
-/// assert_eq!(stabilizer_code.get_num_stabilizers(), 4);
+/// assert_eq!(stabilizer_code.num_stabilizers(), 4);
 /// ```
 #[derive(Debug, Clone)]
 pub struct StabilizerCode {
@@ -41,11 +41,11 @@ impl StabilizerCode {
         Self::new(code_name.to_string(), stabilizer_group)
     }
 
-    pub fn get_num_stabilizers(&self) -> usize {
-        self.stabilizer_group.get_num_generators()
+    pub fn num_stabilizers(&self) -> usize {
+        self.stabilizer_group.num_generators()
     }
 
-    pub fn get_stabilizer_group(&self) -> &StabilizerGroup {
+    pub fn stabilizer_group(&self) -> &StabilizerGroup {
         &self.stabilizer_group
     }
 }
@@ -56,12 +56,12 @@ impl QuantumCode for StabilizerCode {
     }
 
     fn n(&self) -> usize {
-        self.stabilizer_group.get_num_qubits()
+        self.stabilizer_group.num_qubits()
     }
 
     fn k(&self) -> usize {
         let n = self.n();
-        let r = self.get_num_stabilizers();
+        let r = self.num_stabilizers();
         n - r
     }
 }
@@ -81,6 +81,6 @@ mod tests {
         let stabilizer_code = StabilizerCode::from_generators("TestCode", generators);
         assert_eq!(stabilizer_code.n(), 5);
         assert_eq!(stabilizer_code.k(), 1);
-        assert_eq!(stabilizer_code.get_num_stabilizers(), 4);
+        assert_eq!(stabilizer_code.num_stabilizers(), 4);
     }
 }

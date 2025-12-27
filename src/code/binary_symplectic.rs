@@ -35,15 +35,15 @@ impl BinarySymplecticVector {
         Self { z_part, x_part }
     }
 
-    pub fn get_z_part(&self) -> &BitVec<u64, Lsb0> {
-        &self.z_part
-    }
-
-    pub fn get_x_part(&self) -> &BitVec<u64, Lsb0> {
+    pub fn x_part(&self) -> &BitVec<u64, Lsb0> {
         &self.x_part
     }
 
-    pub fn get_num_qubits(&self) -> usize {
+    pub fn z_part(&self) -> &BitVec<u64, Lsb0> {
+        &self.z_part
+    }
+
+    pub fn num_qubits(&self) -> usize {
         self.z_part.len()
     }
 

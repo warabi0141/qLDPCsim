@@ -33,8 +33,8 @@ impl StabilizerGroup {
         let mut z_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
         let mut x_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
         for generator in &generators {
-            z_part_vecs.push(generator.get_z_part().clone());
-            x_part_vecs.push(generator.get_x_part().clone());
+            z_part_vecs.push(generator.z_part().clone());
+            x_part_vecs.push(generator.x_part().clone());
         }
         assert!(
             is_linearly_independent(&z_part_vecs) && is_linearly_independent(&x_part_vecs),
@@ -44,7 +44,7 @@ impl StabilizerGroup {
         for i in 0..generators.len() {
             for j in (i + 1)..generators.len() {
                 assert!(
-                    generators[i].get_num_qubits() == generators[j].get_num_qubits(),
+                    generators[i].num_qubits() == generators[j].num_qubits(),
                     "生成子の量子ビット数が一致しません"
                 );
                 assert!(
@@ -57,19 +57,19 @@ impl StabilizerGroup {
         Self { generators }
     }
 
-    pub fn get_num_qubits(&self) -> usize {
-        self.generators[0].get_num_qubits()
+    pub fn num_qubits(&self) -> usize {
+        self.generators[0].num_qubits()
     }
 
-    pub fn get_generators(&self) -> &Vec<Paulis> {
+    pub fn generators(&self) -> &Vec<Paulis> {
         &self.generators
     }
 
-    pub fn get_num_generators(&self) -> usize {
+    pub fn num_generators(&self) -> usize {
         self.generators.len()
     }
 
-    pub fn size(&self) -> usize {
+    pub fn order(&self) -> usize {
         1 << self.generators.len()
     }
 
@@ -77,18 +77,18 @@ impl StabilizerGroup {
         StabilizerGroupIterator {
             stabilizer_group: self.clone(),
             index: 0,
-            total: self.size(),
+            total: self.order(),
         }
     }
 
     pub fn include(&self, paulis: &Paulis) -> bool {
         let mut z_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
-        z_part_vecs.push(paulis.get_z_part().clone());
+        z_part_vecs.push(paulis.z_part().clone());
         let mut x_part_vecs = Vec::<BitVec<u64, Lsb0>>::new();
-        x_part_vecs.push(paulis.get_x_part().clone());
+        x_part_vecs.push(paulis.x_part().clone());
         for generator in &self.generators {
-            z_part_vecs.push(generator.get_z_part().clone());
-            x_part_vecs.push(generator.get_x_part().clone());
+            z_part_vecs.push(generator.z_part().clone());
+            x_part_vecs.push(generator.x_part().clone());
         }
         !is_linearly_independent(&z_part_vecs) && !is_linearly_independent(&x_part_vecs)
     }
@@ -108,9 +108,9 @@ impl Iterator for StabilizerGroupIterator {
             return None;
         }
 
-        let mut result = Paulis::identity(self.stabilizer_group.get_num_qubits());
+        let mut result = Paulis::identity(self.stabilizer_group.num_qubits());
 
-        for (gen_idx, generator) in self.stabilizer_group.get_generators().iter().enumerate() {
+        for (gen_idx, generator) in self.stabilizer_group.generators().iter().enumerate() {
             if (self.index >> gen_idx) & 1 == 1 {
                 result = &result * generator;
             }
@@ -142,8 +142,8 @@ mod tests {
         let s3 = Paulis::from_stirng("XIXZZ");
         let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
-        assert_eq!(stabilizer_group.get_num_qubits(), 5);
-        assert_eq!(stabilizer_group.get_num_generators(), 4);
+        assert_eq!(stabilizer_group.num_qubits(), 5);
+        assert_eq!(stabilizer_group.num_generators(), 4);
     }
 
     #[test]
@@ -172,7 +172,7 @@ mod tests {
         let s3 = Paulis::from_stirng("XIXZZ");
         let s4 = Paulis::from_stirng("ZXIXZ");
         let stabilizer_group = StabilizerGroup::new(vec![s1, s2, s3, s4]);
-        assert_eq!(stabilizer_group.size(), 16);
+        assert_eq!(stabilizer_group.order(), 16);
     }
 
     #[test]

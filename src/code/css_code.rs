@@ -2,7 +2,6 @@ use crate::code::error_vector::{ErrorVector, Syndrome};
 use crate::code::quantum_code::QuantumCode;
 use crate::code::stabilizer_code::StabilizerCode;
 use crate::math::sparse_matrix::BinarySparseMatrix;
-use bitvec::prelude::*;
 
 struct CssCode {
     code_name: String,
@@ -91,6 +90,7 @@ impl QuantumCode for CssCode {
 mod tests {
     use super::*;
     use crate::math::sparse_matrix::BinarySparseMatrix;
+    use bitvec::prelude::*;
 
     #[test]
     fn test_css_code_new() {
